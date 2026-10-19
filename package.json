@@ -1,0 +1,29 @@
+{
+  "name": "campuslands-bases-datos-vectoriales-qdrant-interactivo",
+  "version": "1.0.0",
+  "description": "Guía interactiva y ejercicio práctico con IA sobre Bases de Datos Vectoriales, Embeddings, HNSW y Arquitectura de Qdrant en Node.js (ESM) para Campuslands",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "test": "NODE_ENV=test node test/test-vector-db.js"
+  },
+  "keywords": [
+    "campuslands",
+    "vector-database",
+    "qdrant",
+    "embeddings",
+    "hnsw",
+    "semantic-search",
+    "ia",
+    "nodejs",
+    "express",
+    "educativo"
+  ],
+  "author": "Andre Lopez <andrelopez012@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
