@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bases de Datos Vectoriales, Qdrant & Ejercicio con IA | Guía Interactiva • Campuslands</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-surface: #0f1523;
+      --bg-card: #151d30;
+      --bg-code: #1e1e1e; /* Color oficial VS Code Dark+ */
+      --border-subtle: #1e293b;
+      --border-accent: rgba(56, 189, 248, 0.35);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --node-green: #22c55e;
+      --node-green-glow: rgba(34, 197, 94, 0.25);
+      --campus-cyan: #38bdf8;
+      --campus-purple: #a855f7;
+      --campus-amber: #f59e0b;
+      --campus-red: #ef4444;
+      --qdrant-rose: #f43f5e;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      --transition-speed: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Header Superior */
+    header.deck-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(15, 21, 35, 0.94);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      z-index: 100;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #f43f5e 0%, #a855f7 50%, #06b6d4 100%);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 0.28rem 0.65rem;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-sub {
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .brand-sub { display: inline; }
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .btn-action {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all var(--transition-speed);
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn-action:hover {
+      background: #1e293b;
+      border-color: var(--campus-cyan);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .progress-bar-container {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 99;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--qdrant-rose), var(--campus-purple), var(--campus-cyan));
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+      transition: width 0.3s ease;
+    }
+
+    /* Contenedor Principal */
+    main.presentation-wrapper {
+      margin-top: 68px;
+      margin-bottom: 90px;
+      min-height: calc(100vh - 158px);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    /* Modo Diapositivas */
+    body.mode-slides .slide-item {
+      display: none;
+      width: 100%;
+      max-width: 1280px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+      animation: fadeInSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      position: relative;
+    }
+
+    body.mode-slides .slide-item.active {
+      display: block;
+    }
+
+    /* Modo Documento Continuo */
+    body.mode-doc main.presentation-wrapper {
+      display: block;
+      max-width: 1220px;
+      margin: 80px auto 40px auto;
+      padding: 1rem;
+    }
+
+    body.mode-doc .slide-item {
+      display: block;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 2.5rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+    }
+
+    body.mode-doc .slide-nav-dock {
+      display: none;
+    }
+
+    @keyframes fadeInSlide {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Insignias y Tipografía */
+    .slide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--node-green);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      margin-bottom: 1.25rem;
+    }
+
+    .slide-badge.cyan {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--campus-cyan);
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+
+    .slide-badge.purple {
+      background: rgba(168, 85, 247, 0.12);
+      color: var(--campus-purple);
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    .slide-badge.amber {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--campus-amber);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .slide-badge.rose {
+      background: rgba(244, 63, 94, 0.14);
+      color: #fb7185;
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    .slide-title {
+      font-size: 2.15rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-desc {
+      font-size: 1.03rem;
+      color: var(--text-muted);
+      margin-bottom: 1.65rem;
+      max-width: 1060px;
+    }
+
+    /* Grillas y Cajas */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin: 1.25rem 0;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      margin: 1.25rem 0;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.15rem;
+      margin: 1.25rem 0;
+    }
+
+    @media (min-width: 768px) {
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .card-info {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.4rem;
+      position: relative;
+      transition: all var(--transition-speed);
+    }
+
+    .card-info:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .card-info.accent-green { border-left: 4px solid var(--node-green); }
+    .card-info.accent-cyan { border-left: 4px solid var(--campus-cyan); }
+    .card-info.accent-purple { border-left: 4px solid var(--campus-purple); }
+    .card-info.accent-amber { border-left: 4px solid var(--campus-amber); }
+    .card-info.accent-rose { border-left: 4px solid var(--qdrant-rose); }
+
+    .card-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.55rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .card-text {
+      color: var(--text-muted);
+      font-size: 0.91rem;
+      line-height: 1.6;
+    }
+
+    /* Bloques de Terminal con Botón de Copiado */
+    .terminal-box {
+      background: #060910;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 0.85rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      position: relative;
+      color: #38bdf8;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-copy:hover {
+      background: var(--campus-cyan);
+      color: #050a14;
+      font-weight: 700;
+    }
+
+    /* Simulador Grid 2D de Animales (Slide 2) */
+    .grid2d-container {
+      background: #080d1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    @media (min-width: 920px) {
+      .grid2d-container {
+        grid-template-columns: 1.35fr 1fr;
+      }
+    }
+
+    /* Máquina Mágica de Crayones (Slide 3) */
+    .crayon-box-stage {
+      background: #080d1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin: 1.25rem 0;
+    }
+
+    .crayon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .crayon-item {
+      background: var(--bg-card);
+      border: 2px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.65rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .crayon-item:hover {
+      transform: translateY(-3px);
+      border-color: var(--campus-cyan);
+    }
+
+    .crayon-item.top-match {
+      border-color: var(--node-green);
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.3);
+    }
+
+    .crayon-tip {
+      height: 32px;
+      border-radius: 8px 8px 3px 3px;
+      margin-bottom: 0.45rem;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,0.35);
+    }
+
+    /* Diagrama de Tubería de Embeddings (Slide 4) */
+    .pipeline-container {
+      background: #0b0f19;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.4rem;
+      margin: 1.25rem 0;
+    }
+
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 0.75rem 0;
+    }
+
+    .pipeline-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 0.85rem 1.1rem;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 170px;
+      transition: all var(--transition-speed);
+    }
+
+    .pipeline-step:hover {
+      border-color: var(--campus-cyan);
+      transform: translateY(-2px);
+    }
+
+    .pipeline-arrow {
+      color: var(--campus-cyan);
+      font-weight: 900;
+      font-size: 1.25rem;
+    }
+
+    /* ========================================================= */
+    /* VENTANAS DE CÓDIGO ESTILO VS CODE DARK+ (SIN CORTAR)      */
+    /* ========================================================= */
+    .vscode-window {
+      background: #1e1e1e;
+      border: 1px solid #333333;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 1.25rem 0;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .vscode-tabs-bar {
+      display: flex;
+      background: #252526;
+      overflow-x: auto;
+      border-bottom: 1px solid #1e1e1e;
+      scrollbar-width: none;
+    }
+    .vscode-tabs-bar::-webkit-scrollbar { display: none; }
+
+    .vscode-tab {
+      background: #2d2d2d;
+      color: #969696;
+      border: none;
+      border-right: 1px solid #1e1e1e;
+      border-top: 2px solid transparent;
+      padding: 0.6rem 1.05rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .vscode-tab:hover {
+      background: #323232;
+      color: #ffffff;
+    }
+
+    .vscode-tab.active {
+      background: #1e1e1e;
+      color: #ffffff;
+      border-top: 2px solid #007acc;
+      font-weight: 600;
+    }
+
+    .tab-icon-js {
+      color: #f7df1e;
+      font-weight: 900;
+      font-size: 0.72rem;
+      background: #323330;
+      padding: 0.1rem 0.25rem;
+      border-radius: 3px;
+    }
+
+    .vscode-breadcrumbs {
+      background: #1e1e1e;
+      border-bottom: 1px solid #2d2d2d;
+      padding: 0.35rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: #858585;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+
+    .vscode-breadcrumbs span.active-crumb {
+      color: #cccccc;
+    }
+
+    .vscode-body {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    @media (min-width: 980px) {
+      .vscode-body {
+        grid-template-columns: 1.5fr 1fr;
+      }
+    }
+
+    /* Editor de código SIN recorte vertical: siempre se ve todo el código */
+    .vscode-editor {
+      background: #1e1e1e;
+      padding: 0.75rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      border-right: 1px solid #2d2d2d;
+      width: 100%;
+    }
+
+    .code-row {
+      display: flex;
+      align-items: baseline;
+      padding: 0.16rem 0.75rem;
+      cursor: pointer;
+      transition: background 0.1s ease;
+      line-height: 1.55;
+    }
+
+    .code-row:hover {
+      background: #2a2d2e;
+    }
+
+    .code-row.active {
+      background: #282e3a;
+      box-shadow: inset 3px 0 0 #007acc;
+    }
+
+    .code-ln {
+      color: #6e7681;
+      width: 2.5rem;
+      text-align: right;
+      flex-shrink: 0;
+      user-select: none;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      margin-right: 1.1rem;
+    }
+
+    .code-text {
+      flex: 1;
+      white-space: pre-wrap; /* Salto de línea automático si hace falta */
+      word-break: break-word; /* Nunca se come las líneas */
+      overflow-wrap: anywhere;
+      color: #d4d4d4;
+    }
+
+    .vscode-inspector {
+      background: #252526;
+      padding: 1.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+      border-left: 1px solid #1e1e1e;
+      position: sticky;
+      top: 76px;
+    }
+
+    .detail-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      align-self: flex-start;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .detail-heading {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .detail-body {
+      font-size: 0.91rem;
+      color: #cccccc;
+      line-height: 1.65;
+    }
+
+    .detail-box-tip {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      font-size: 0.85rem;
+      color: #bbf7d0;
+    }
+
+    /* Paleta de Sintaxis VS Code Dark+ */
+    .hl-kw { color: #c586c0; font-weight: 600; }
+    .hl-type { color: #4ec9b0; }
+    .hl-fn { color: #dcdcaa; }
+    .hl-str { color: #ce9178; }
+    .hl-num { color: #b5cea8; }
+    .hl-param { color: #9cdcfe; }
+    .hl-cmt { color: #6a9955; font-style: italic; }
+    .hl-op { color: #d4d4d4; }
+    .hl-punc { color: #ffd700; }
+
+    /* Sandbox de IA & Qdrant (Slide 10) */
+    .sandbox-container {
+      background: #0b0f19;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.65rem;
+      margin: 1.25rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.35rem;
+    }
+
+    .btn-preset {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-preset:hover {
+      border-color: var(--campus-cyan);
+      transform: translateY(-1px);
+    }
+
+    .input-query {
+      flex: 1;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .input-query:focus {
+      border-color: var(--campus-cyan);
+    }
+
+    .select-metric {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, #f43f5e, #a855f7, #06b6d4);
+      color: #ffffff;
+      border: none;
+      font-weight: 800;
+      padding: 0.7rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-send:hover {
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .vector-bars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.65rem;
+    }
+
+    .dim-bar-card {
+      background: #070b14;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+    }
+
+    .dim-bar-track {
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 0.35rem;
+    }
+
+    .dim-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #a855f7);
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+
+    /* Tablas Didácticas */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      margin: 1rem 0;
+    }
+
+    .table-custom {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+    }
+
+    .table-custom th, .table-custom td {
+      padding: 0.85rem 1.1rem;
+      text-align: left;
+      font-size: 0.86rem;
+      vertical-align: top;
+    }
+
+    .table-custom th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .table-custom tr:not(:last-child) td {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Barra de Navegación Inferior Flotante */
+    .slide-nav-dock {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 21, 35, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 90;
+    }
+
+    .dock-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      font-weight: 800;
+    }
+
+    .dock-btn:hover:not(:disabled) {
+      background: var(--campus-cyan);
+      color: #050a14;
+      transform: scale(1.05);
+    }
+
+    .dock-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .dock-counter {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 74px;
+      text-align: center;
+    }
+
+    /* Modal de Tabla de Contenidos (TOC) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      max-width: 720px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.75rem;
+    }
+
+    .modal-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toc-item {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: var(--bg-card);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all var(--transition-speed);
+    }
+
+    .toc-item:hover {
+      border-color: var(--campus-cyan);
+      background: #1e293b;
+      transform: translateX(4px);
+    }
+
+    .toc-item.current {
+      border-color: var(--node-green);
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .toc-num {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--campus-cyan);
+      font-size: 0.85rem;
+      margin-right: 0.75rem;
+    }
+
+    .toast-msg {
+      position: fixed;
+      bottom: 80px;
+      right: 25px;
+      background: #10b981;
+      color: #050a14;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 300;
+    }
+  </style>
+</head>
+<body class="mode-slides">
+
+  <!-- Header Superior -->
+  <header class="deck-header">
+    <div class="brand-wrap">
+      <span class="brand-badge">Campuslands AI</span>
+      <div class="brand-title">
+        <span>Bases de Datos Vectoriales & Qdrant</span>
+        <span class="brand-sub">• Teoría Interactiva + Ejercicio Práctico con IA en Node.js</span>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <button id="btnToggleMode" class="btn-action" title="Alternar entre Diapositivas y Documento Completo (Tecla M)">
+        <span id="modeIcon">📖</span>
+        <span id="modeLabel">Modo Lectura</span>
+      </button>
+      <button id="btnOpenTOC" class="btn-action" title="Abrir Índice Temático (Tecla T)">
+        <span>📑</span>
+        <span>Índice</span>
+      </button>
+      <a href="https://github.com/anndreloopez012/campuslands-bases-datos-vectoriales-qdrant-interactivo" target="_blank" class="btn-action" title="Ver repositorio en GitHub">
+        <span>🐙</span>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Barra de Progreso -->
+  <div class="progress-bar-container">
+    <div id="progressBar" class="progress-bar"></div>
+  </div>
+
+  <main class="presentation-wrapper">
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 1: 1. Bases de Datos Vectoriales - Descripción                -->
+    <!-- =================================================================== -->
+    <section class="slide-item active" data-step="1">
+      <span class="slide-badge rose">🧠 1. Bases de Datos Vectoriales • Introducción</span>
+      <h1 class="slide-title">Bases de Datos Vectoriales (Vector Databases)</h1>
+      <p class="slide-desc">
+        En la era actual, caracterizada por la complejidad creciente de los datos y la proliferación de información en altas dimensiones, las <strong>bases de datos tradicionales</strong> muestran limitaciones importantes: aunque resultan útiles para manejar datos tabulares o estructurados, suelen quedarse cortas al procesar, buscar y extraer significado de datasets más intrincados como <strong>imágenes, texto en lenguaje natural, audio o combinaciones multimodales</strong>.
+      </p>
+
+      <div class="card-info accent-purple" style="margin-bottom: 1.35rem;">
+        <div class="card-title">
+          <span>🚀 ¿Por qué surgen las Vector Databases?</span>
+          <a href="https://medium.com/data-and-beyond/vector-databases-a-beginners-guide-b050cbbe9ca0" target="_blank" style="font-size: 0.78rem; color: var(--campus-cyan); text-decoration: none;">Adaptado de: Medium (A Beginner's Guide) ↗</a>
+        </div>
+        <div class="card-text">
+          Surgen como una innovación tecnológica diseñada específicamente para enfrentar los desafíos de esta nueva era de información masiva y modelos de Inteligencia Artificial.
+        </div>
+      </div>
+
+      <div class="grid-4">
+        <div class="card-info accent-cyan">
+          <div class="card-title">1. Representación en Vectores</div>
+          <div class="card-text">
+            Transforman datos complejos (texto, imágenes, audio, etc.) en <strong>vectores de alta dimensión</strong> que capturan sus relaciones semánticas profundas.
+          </div>
+        </div>
+
+        <div class="card-info accent-green">
+          <div class="card-title">2. Búsqueda Semántica Eficiente</div>
+          <div class="card-text">
+            A diferencia de las consultas exactas (<code>WHERE nombre = 'X'</code>) de las bases tradicionales, permiten <strong>buscar por significado</strong> y no solo por coincidencia literal.
+          </div>
+        </div>
+
+        <div class="card-info accent-amber">
+          <div class="card-title">3. Escalabilidad Masiva</div>
+          <div class="card-text">
+            Están optimizadas matemáticamente para manejar <strong>millones o billones de vectores</strong> con tiempos de respuesta extremadamente bajos (milisegundos).
+          </div>
+        </div>
+
+        <div class="card-info accent-rose">
+          <div class="card-title">4. Casos de Uso Modernos</div>
+          <div class="card-text">
+            Se aplican en <strong>sistemas de recomendación</strong>, motores de búsqueda inteligentes, <strong>asistentes conversacionales (RAG)</strong> y análisis biométrico.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1.25rem;">
+        <div class="card-info accent-amber">
+          <div class="card-title">❌ Base de Datos Tradicional (Coincidencia Literal)</div>
+          <div class="card-text">
+            Si buscas <code>SELECT * FROM articulos WHERE texto LIKE '%coche%'</code>, la base de datos tradicional <strong>no encontrará</strong> un documento que diga <em>"El automóvil deportivo aceleró en la autopista"</em> porque no contiene literalmente la palabra <code>coche</code>.
+          </div>
+        </div>
+        <div class="card-info accent-green">
+          <div class="card-title">✅ Base de Datos Vectorial (Similitud Semántica)</div>
+          <div class="card-text">
+            Como <em>"coche"</em>, <em>"automóvil"</em> y <em>"vehículo"</em> generan vectores muy cercanos en el espacio multidimensional, la base de datos vectorial <strong>sí recupera el resultado</strong> entendiendo su significado.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 2: 1.1. Definición y Representación Simplificada en Grid 2D   -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="2">
+      <span class="slide-badge cyan">📐 1.1. Definición • Espacio Multidimensional</span>
+      <h2 class="slide-title">1.1. Definición y Representación Simplificada en un Grid 2D</h2>
+      <p class="slide-desc">
+        A diferencia de las bases de datos tradicionales que manejan registros tabulares o relacionales, las bases de datos vectoriales están diseñadas para almacenar, indexar y buscar <strong>vectores: representaciones numéricas en un espacio multidimensional</strong>.
+      </p>
+
+      <div class="grid-3">
+        <div class="card-info accent-cyan">
+          <div class="card-title">🔢 1. Características Numéricas</div>
+          <div class="card-text">Atributos medibles directamente como <strong>altura, peso, temperatura</strong> o coordenadas espaciales.</div>
+        </div>
+        <div class="card-info accent-purple">
+          <div class="card-title">🤖 2. Embeddings de IA</div>
+          <div class="card-text">Vectores generados por redes neuronales a partir de <strong>texto, imágenes o audio</strong>.</div>
+        </div>
+        <div class="card-info accent-rose">
+          <div class="card-title">🧬 3. Datos Complejos</div>
+          <div class="card-text">Representaciones de <strong>estructuras moleculares, genómica o patrones biométricos</strong> (rostros, voz).</div>
+        </div>
+      </div>
+
+      <!-- Simulador Interactivo del Grid 2D de Animales de la Clase -->
+      <div class="grid2d-container">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+            <span style="font-weight: 800; color: var(--campus-cyan); font-size: 0.95rem;">
+              🎯 Plano Bidimensional Interactivo (Haz clic en cualquier Punto o Consulta)
+            </span>
+            <a href="https://medium.com/data-and-beyond/vector-databases-a-beginners-guide-b050cbbe9ca0" target="_blank" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none;">Fuente: Medium ↗</a>
+          </div>
+
+          <svg id="svgGrid2D" viewBox="0 0 540 310" style="width: 100%; background: #050914; border: 1px solid #1e293b; border-radius: 12px; display: block;">
+            <!-- Líneas de cuadrícula -->
+            <line x1="90" y1="40" x2="90" y2="255" stroke="#334155" stroke-width="2"/>
+            <line x1="90" y1="255" x2="500" y2="255" stroke="#334155" stroke-width="2"/>
+
+            <!-- Guías horizontales (Tamaño Y) -->
+            <line x1="90" y1="70" x2="490" y2="70" stroke="#1e293b" stroke-dasharray="4"/>
+            <line x1="90" y1="150" x2="490" y2="150" stroke="#1e293b" stroke-dasharray="4"/>
+            <line x1="90" y1="225" x2="490" y2="225" stroke="#1e293b" stroke-dasharray="4"/>
+
+            <!-- Guías verticales (Color X) -->
+            <line x1="165" y1="40" x2="165" y2="255" stroke="#1e293b" stroke-dasharray="4"/>
+            <line x1="310" y1="40" x2="310" y2="255" stroke="#1e293b" stroke-dasharray="4"/>
+            <line x1="450" y1="40" x2="450" y2="255" stroke="#1e293b" stroke-dasharray="4"/>
+
+            <!-- Etiquetas Eje Y (Tamaño del Animal) -->
+            <text x="15" y="25" fill="#38bdf8" font-size="11" font-weight="bold">EJE Y: TAMAÑO</text>
+            <text x="22" y="74" fill="#cbd5e1" font-size="11">Grande (3)</text>
+            <text x="22" y="154" fill="#cbd5e1" font-size="11">Mediano (2)</text>
+            <text x="22" y="229" fill="#cbd5e1" font-size="11">Pequeño (1)</text>
+
+            <!-- Etiquetas Eje X (Color del Animal) -->
+            <text x="130" y="278" fill="#d97706" font-size="11" font-weight="bold">Marrón (1)</text>
+            <text x="282" y="278" fill="#94a3b8" font-size="11" font-weight="bold">Negro (2)</text>
+            <text x="422" y="278" fill="#f8fafc" font-size="11" font-weight="bold">Blanco (3)</text>
+            <text x="235" y="298" fill="#38bdf8" font-size="11" font-weight="bold">EJE X: COLOR DEL ANIMAL ➔</text>
+
+            <!-- Línea dinámica de proximidad -->
+            <line id="svgNearestLine" x1="310" y1="70" x2="450" y2="70" stroke="#22c55e" stroke-width="2.5" stroke-dasharray="5"/>
+
+            <!-- Punto Imagen A: Marrón (165), Mediano (150) -->
+            <g style="cursor: pointer;" onclick="seleccionarPuntoAnimal('A')">
+              <circle cx="165" cy="150" r="14" fill="#d97706" stroke="#fff" stroke-width="2.5"/>
+              <text x="165" y="154" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">A</text>
+              <text x="165" y="128" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">🐕 Imagen A</text>
+            </g>
+
+            <!-- Punto Imagen B: Negro (310), Pequeño (225) -->
+            <g style="cursor: pointer;" onclick="seleccionarPuntoAnimal('B')">
+              <circle cx="310" cy="225" r="14" fill="#334155" stroke="#38bdf8" stroke-width="2.5"/>
+              <text x="310" y="229" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">B</text>
+              <text x="310" y="203" text-anchor="middle" fill="#7dd3fc" font-size="11" font-weight="bold">🐈‍⬛ Imagen B</text>
+            </g>
+
+            <!-- Punto Imagen E: Negro (310), Grande (70) -->
+            <g style="cursor: pointer;" onclick="seleccionarPuntoAnimal('E')">
+              <circle cx="310" cy="70" r="14" fill="#1e293b" stroke="#a855f7" stroke-width="2.5"/>
+              <text x="310" y="74" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">E</text>
+              <text x="310" y="48" text-anchor="middle" fill="#d8b4fe" font-size="11" font-weight="bold">🐻 Imagen E</text>
+            </g>
+
+            <!-- Punto Imagen C: Blanco (450), Grande (70) -->
+            <g style="cursor: pointer;" onclick="seleccionarPuntoAnimal('C')">
+              <circle cx="450" cy="70" r="14" fill="#e2e8f0" stroke="#22c55e" stroke-width="2.5"/>
+              <text x="450" y="74" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="bold">C</text>
+              <text x="450" y="48" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="bold">🐻‍❄️ Imagen C</text>
+            </g>
+          </svg>
+        </div>
+
+        <div>
+          <div class="card-info accent-green" style="margin-bottom: 1rem;">
+            <div class="card-title" id="animalCardTitle">🐻 Imagen E: Negro, Tamaño Grande</div>
+            <div class="card-text" id="animalCardDesc">
+              • <strong>Coordenada Vectorial 2D:</strong> <code>[X: 2 (Negro), Y: 3 (Grande)]</code><br>
+              • <strong>Vecino más próximo en el espacio:</strong> <strong>Imagen C</strong> (Blanco, Grande) e <strong>Imagen A</strong> (Marrón, Mediano).<br><br>
+              Haz clic en los botones inferiores para inspeccionar cada punto del plano:
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem;">
+              <button class="btn-preset" onclick="seleccionarPuntoAnimal('A')">🐕 Imagen A (Marrón, Mediano)</button>
+              <button class="btn-preset" onclick="seleccionarPuntoAnimal('B')">🐈‍⬛ Imagen B (Negro, Pequeño)</button>
+              <button class="btn-preset" onclick="seleccionarPuntoAnimal('C')">🐻‍❄️ Imagen C (Blanco, Grande)</button>
+              <button class="btn-preset" onclick="seleccionarPuntoAnimal('E')">🐻 Imagen E (Negro, Grande)</button>
+            </div>
+          </div>
+
+          <div class="card-info accent-purple">
+            <div class="card-title">💡 De 2D a Miles de Dimensiones</div>
+            <div class="card-text">
+              • Cada punto se posiciona en función de sus características.<br>
+              • <strong>La proximidad entre puntos refleja similitud semántica.</strong><br>
+              • En la práctica, los espacios tienen <strong>cientos o miles de dimensiones</strong> y motores como Qdrant usan algoritmos especializados (<strong>k-NN, HNSW o FAISS</strong>) para localizar rápidamente los vectores más cercanos.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 3: 1.2. Funcionamiento - La Máquina de Crayones e Indexación  -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="3">
+      <span class="slide-badge amber">🖍️ 1.2. Funcionamiento • Analogía e Indexación</span>
+      <h2 class="slide-title">1.2. La Máquina Mágica de Crayones y Técnicas de Indexación</h2>
+      <p class="slide-desc">
+        Imagina que tienes una gran caja de crayones de colores y cada crayón representa un color distinto. Una base de datos vectorial es como una <strong>máquina mágica de clasificación</strong> que encuentra en segundos los crayones más parecidos en tonalidad al color de referencia que elijas, evitando buscar uno por uno.
+      </p>
+
+      <!-- Simulador Interactivo de la Caja de Crayones -->
+      <div class="crayon-box-stage">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+          <div>
+            <div style="font-weight: 800; color: var(--campus-amber); font-size: 0.96rem;">
+              🖍️ Prueba la Máquina Clasificadora de Crayones (Vectores RGB en 3D)
+            </div>
+            <div style="font-size: 0.84rem; color: var(--text-muted);">
+              Elige un color de referencia y el motor vectorial calculará la similitud del coseno entre su vector <code>[R, G, B]</code> y toda la caja:
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-preset" style="border-color: #0284c7; color: #38bdf8;" onclick="buscarCrayonesSimilares([2, 132, 199], 'Azul Preferido')">🔵 Buscar Azul Preferido</button>
+            <button class="btn-preset" style="border-color: #10b981; color: #34d399;" onclick="buscarCrayonesSimilares([16, 185, 129], 'Verde Esmeralda')">🟢 Buscar Verde Esmeralda</button>
+            <button class="btn-preset" style="border-color: #f43f5e; color: #fb7185;" onclick="buscarCrayonesSimilares([244, 63, 94], 'Rojo Carmesí')">🔴 Buscar Rojo Carmesí</button>
+            <button class="btn-preset" style="border-color: #a855f7; color: #d8b4fe;" onclick="buscarCrayonesSimilares([168, 85, 247], 'Violeta Imperial')">🟣 Buscar Violeta</button>
+          </div>
+        </div>
+
+        <div id="crayonStatusBanner" style="margin-top: 0.85rem; padding: 0.55rem 0.9rem; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; color: #7dd3fc;">
+          Referencia activa: Azul Preferido — Vector Consulta = [2, 132, 199] (Los 3 crayones más cercanos resaltan en verde)
+        </div>
+
+        <div class="crayon-grid" id="crayonGridContainer"></div>
+      </div>
+
+      <h3 style="font-size: 1.15rem; margin: 1.25rem 0 0.75rem 0; color: #fff;">
+        ⚡ Las 3 Técnicas Especializadas de Indexación Vectorial
+      </h3>
+      <div class="grid-3">
+        <div class="card-info accent-cyan">
+          <div class="card-title">1. Hashing (LSH)</div>
+          <div class="card-text">
+            <strong>Agrupa datos similares en <em>buckets</em> (cubetas):</strong> Utiliza funciones hash sensibles a la localidad para que vectores cercanos caigan dentro del mismo contenedor, reduciendo el espacio de búsqueda.
+          </div>
+        </div>
+
+        <div class="card-info accent-amber">
+          <div class="card-title">2. Cuantización (Quantization)</div>
+          <div class="card-text">
+            <strong>Reduce la dimensionalidad y el peso en memoria:</strong> Comprime los valores en coma flotante de los vectores sin perder demasiada información semántica.
+          </div>
+        </div>
+
+        <div class="card-info accent-purple">
+          <div class="card-title">3. Métodos Basados en Grafos (HNSW)</div>
+          <div class="card-text">
+            <strong>Hierarchical Navigable Small World:</strong> Construye un grafo multicapa que permite recorrer el espacio vectorial de manera ultrarrápida saltando entre nodos vecinos.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 4: 1.3. Funcionamiento a Nivel de Arquitectura y Recuperación -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="4">
+      <span class="slide-badge purple">🏗️ 1.3. Funcionamiento a Nivel de Arquitectura</span>
+      <h2 class="slide-title">1.3. Pipeline de Embeddings y Recuperación de Información</h2>
+      <p class="slide-desc">
+        Cuando un usuario almacena información o realiza una consulta, pueden intervenir distintos tipos de datos sin procesar (imágenes, documentos, videos o audios). Estos datos pasan primero por un <strong>Modelo de Embeddings (red neuronal compleja)</strong> que los traduce en vectores numéricos de alta dimensionalidad almacenados en <strong>Qdrant</strong>.
+      </p>
+
+      <!-- Fase 1: Ingesta -->
+      <div class="pipeline-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <span style="font-weight: 800; color: var(--campus-purple); font-size: 0.92rem;">
+            📥 FASE 1: INGESTA Y VECTORIZACIÓN DE DATOS MULTIMODALES
+          </span>
+          <a href="https://medium.com/data-and-beyond/vector-databases-a-beginners-guide-b050cbbe9ca0" target="_blank" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none;">Fuente: Medium ↗</a>
+        </div>
+        <div class="pipeline-flow">
+          <div class="pipeline-step" style="border-color: var(--campus-amber);">
+            <div style="font-weight: 800; font-size: 0.9rem;">📄 🖼️ 🎵 🎬 Datos Crudos</div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">Texto, Imágenes, Audio, Video</div>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-step" style="border-color: var(--campus-purple);">
+            <div style="font-weight: 800; font-size: 0.9rem;">🧠 Modelo de Embeddings</div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">Red Neuronal Profunda (IA)</div>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-step" style="border-color: var(--campus-cyan);">
+            <div style="font-weight: 800; font-size: 0.9rem;">🔢 Embedding Vectorial</div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #38bdf8; margin-top: 0.25rem;">[0.14, -0.82, 0.91, ...]</div>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-step" style="border-color: var(--qdrant-rose);">
+            <div style="font-weight: 800; font-size: 0.9rem;">🗄️ Base Vectorial Qdrant</div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">Indexación HNSW + Payload</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fase 2: Recuperación (Similarity Search) -->
+      <div class="pipeline-container" style="margin-top: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <span style="font-weight: 800; color: var(--node-green); font-size: 0.92rem;">
+            🔎 FASE 2: RECUPERACIÓN DE LA INFORMACIÓN (SIMILARITY SEARCH)
+          </span>
+          <a href="https://www.youtube.com/watch?v=YPppSOk7yI4&t=278s" target="_blank" style="font-size: 0.75rem; color: var(--campus-cyan); text-decoration: none;">🎬 Ver Video de Referencia (YouTube) ↗</a>
+        </div>
+
+        <div class="grid-4" style="margin-top: 0.85rem;">
+          <div class="card-info accent-cyan">
+            <div class="card-title">Paso 1: Consulta</div>
+            <div class="card-text">El sistema recibe la consulta del usuario en lenguaje natural (o una imagen/audio de referencia) y la convierte en el <strong>vector de la consulta</strong>.</div>
+          </div>
+          <div class="card-info accent-purple">
+            <div class="card-title">Paso 2: Similarity Search</div>
+            <div class="card-text">La base de datos vectorial ejecuta operaciones matemáticas de <strong>búsqueda por similitud</strong> sobre el índice HNSW.</div>
+          </div>
+          <div class="card-info accent-amber">
+            <div class="card-title">Paso 3: Comparación</div>
+            <div class="card-text">El motor compara el <strong>vector de la consulta</strong> con los vectores previamente almacenados en la colección usando la métrica elegida.</div>
+          </div>
+          <div class="card-info accent-green">
+            <div class="card-title">Paso 4: Resultados Top-K</div>
+            <div class="card-text">Recupera los puntos que son <strong>más semejantes semánticamente</strong> al vector de la consulta con precisión y baja latencia.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 5: 1.4. Bases de Datos Vectoriales - Qdrant                   -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="5">
+      <span class="slide-badge rose">🚀 1.4. Motor Vectorial • Qdrant</span>
+      <h2 class="slide-title">1.4. Qdrant: Búsqueda Vectorial de Alto Rendimiento</h2>
+      <p class="slide-desc">
+        <strong>Qdrant</strong> es un motor de búsqueda vectorial <em>open-source</em> diseñado para manejar datos de alta dimensionalidad. Su objetivo principal es <strong>indexar y buscar vectores de manera eficiente</strong>, incluso cuando se trabaja con conjuntos de datos masivos. Para lograrlo, Qdrant emplea dos algoritmos avanzados fundamentales:
+      </p>
+
+      <div class="grid-2">
+        <div class="card-info accent-cyan">
+          <div class="card-title">
+            <span>🕸️ 1. HNSW Graphs (Hierarchical Navigable Small World)</span>
+            <span style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--campus-cyan);">Velocidad de Búsqueda</span>
+          </div>
+          <div class="card-text">
+            • <strong>Se utilizan para indexación eficiente:</strong> Organizan los puntos en múltiples capas jerárquicas de grafos.<br><br>
+            • <strong>Recorrido rápido en alta dimensionalidad:</strong> Comienza en la capa superior dando "saltos largos" y desciende a las capas inferiores afinando la vecindad.<br><br>
+            • <strong>Reducción drástica del tiempo:</strong> Encuentra los resultados más relevantes en complejidad logarítmica $O(\log N)$ sin tener que comparar contra el 100% de la base de datos.
+          </div>
+          <!-- Ilustración SVG de capas HNSW -->
+          <svg viewBox="0 0 420 125" style="width: 100%; background: #070b14; border-radius: 10px; margin-top: 1rem; border: 1px solid #1e293b;">
+            <text x="14" y="24" fill="#38bdf8" font-size="10" font-weight="bold">Capa 2 (Saltos Largos)</text>
+            <line x1="150" y1="20" x2="350" y2="20" stroke="#38bdf8" stroke-width="2"/>
+            <circle cx="150" cy="20" r="6" fill="#38bdf8"/>
+            <circle cx="350" cy="20" r="6" fill="#38bdf8"/>
+
+            <text x="14" y="64" fill="#a855f7" font-size="10" font-weight="bold">Capa 1 (Intermedia)</text>
+            <line x1="150" y1="20" x2="150" y2="60" stroke="#64748b" stroke-dasharray="3"/>
+            <line x1="350" y1="20" x2="350" y2="60" stroke="#64748b" stroke-dasharray="3"/>
+            <line x1="150" y1="60" x2="250" y2="60" stroke="#a855f7" stroke-width="2"/>
+            <line x1="250" y1="60" x2="350" y2="60" stroke="#a855f7" stroke-width="2"/>
+            <circle cx="150" cy="60" r="6" fill="#a855f7"/>
+            <circle cx="250" cy="60" r="6" fill="#a855f7"/>
+            <circle cx="350" cy="60" r="6" fill="#a855f7"/>
+
+            <text x="14" y="104" fill="#22c55e" font-size="10" font-weight="bold">Capa 0 (Vecinos Finos)</text>
+            <line x1="250" y1="60" x2="250" y2="100" stroke="#64748b" stroke-dasharray="3"/>
+            <line x1="150" y1="100" x2="390" y2="100" stroke="#22c55e" stroke-width="2"/>
+            <circle cx="150" cy="100" r="5" fill="#475569"/>
+            <circle cx="200" cy="100" r="5" fill="#475569"/>
+            <circle cx="250" cy="100" r="6" fill="#22c55e"/>
+            <circle cx="300" cy="100" r="7" fill="#f43f5e" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="350" cy="100" r="5" fill="#475569"/>
+            <text x="300" y="119" text-anchor="middle" fill="#fb7185" font-size="9" font-weight="bold">¡Match!</text>
+          </svg>
+        </div>
+
+        <div class="card-info accent-rose">
+          <div class="card-title">
+            <span>📦 2. Product Quantization (PQ)</span>
+            <span style="font-size: 0.75rem; font-family: var(--font-mono); color: #fb7185;">Eficiencia de Memoria</span>
+          </div>
+          <div class="card-text">
+            • <strong>Técnica empleada para comprimir vectores:</strong> Divide un vector largo de alta dimensión en sub-vectores más cortos y los representa mediante códigos compactos (centroides).<br><br>
+            • <strong>Rápido y ligero en RAM:</strong> Hace que el motor no solo sea veloz calculando distancias, sino también sumamente eficiente en el consumo de memoria RAM.<br><br>
+            • <strong>Escalabilidad extrema:</strong> Permite escalar a volúmenes de datos mucho más grandes sin comprometer el rendimiento del servidor.
+          </div>
+          <!-- Ilustración SVG de Product Quantization -->
+          <svg viewBox="0 0 420 125" style="width: 100%; background: #070b14; border-radius: 10px; margin-top: 1rem; border: 1px solid #1e293b;">
+            <text x="16" y="26" fill="#94a3b8" font-size="10" font-weight="bold">Vector Float32 Original (Pesado en RAM):</text>
+            <rect x="16" y="34" width="388" height="24" rx="5" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="210" y="50" text-anchor="middle" fill="#38bdf8" font-family="monospace" font-size="10">[0.8124, -0.3412, 0.1190, 0.9501, -0.4412, 0.7721, ...]</text>
+
+            <text x="16" y="82" fill="#fb7185" font-size="10" font-weight="bold">Vector Comprimido con Product Quantization (Hasta 90% menos RAM):</text>
+            <rect x="16" y="90" width="90" height="24" rx="5" fill="#881337" stroke="#f43f5e"/>
+            <text x="61" y="106" text-anchor="middle" fill="#fff" font-family="monospace" font-size="10">C1: #14</text>
+            <rect x="114" y="90" width="90" height="24" rx="5" fill="#881337" stroke="#f43f5e"/>
+            <text x="159" y="106" text-anchor="middle" fill="#fff" font-family="monospace" font-size="10">C2: #08</text>
+            <rect x="212" y="90" width="90" height="24" rx="5" fill="#881337" stroke="#f43f5e"/>
+            <text x="257" y="106" text-anchor="middle" fill="#fff" font-family="monospace" font-size="10">C3: #63</text>
+            <rect x="310" y="90" width="94" height="24" rx="5" fill="#065f46" stroke="#22c55e"/>
+            <text x="357" y="106" text-anchor="middle" fill="#a7f3d0" font-family="monospace" font-size="10">⚡ Ultra-Rápido</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 6: 1.5. Arquitectura de Qdrant (Los 5 Pilares Oficiales)      -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="6">
+      <span class="slide-badge cyan">🏛️ 1.5. Arquitectura de Qdrant • Terminología Esencial</span>
+      <h2 class="slide-title">1.5. Arquitectura de Qdrant: Los 5 Elementos Clave</h2>
+      <p class="slide-desc">
+        Para dominar Qdrant en proyectos reales de Inteligencia Artificial, es indispensable comprender los 5 componentes que conforman su arquitectura de alto nivel (<a href="https://qdrant.tech/documentation/overview/" target="_blank" style="color: var(--campus-cyan);">Documentación Oficial de Qdrant ↗</a>):
+      </p>
+
+      <div class="grid-3">
+        <!-- 1. Collections -->
+        <div class="card-info accent-purple">
+          <div class="card-title">1. Collections (Colecciones)</div>
+          <div class="card-text">
+            • Es un <strong>conjunto nombrado de puntos</strong> (vectores con su <em>payload</em>) entre los cuales se realiza la búsqueda.<br>
+            • Todos los vectores de una misma colección deben compartir la <strong>misma dimensionalidad</strong> y compararse con una <strong>única métrica de distancia</strong>.<br>
+            • También permite <em>vectores nombrados</em> (múltiples vectores dentro de un solo punto, cada uno con su dimensión y métrica).
+          </div>
+        </div>
+
+        <!-- 2. Distance Metrics -->
+        <div class="card-info accent-cyan">
+          <div class="card-title">2. Distance Metrics (Métricas)</div>
+          <div class="card-text">
+            • Criterios matemáticos empleados para medir la similitud entre vectores. <strong>Deben definirse al crear la colección</strong>.<br>
+            • Dependen de la red neuronal usada para codificar consultas:<br>
+            &nbsp;&nbsp;◦ <strong><code>Cosine Similarity</code></strong>: Ideal para comparar textos y lenguaje natural.<br>
+            &nbsp;&nbsp;◦ <strong><code>Euclidean Distance</code></strong>: Ideal para vectores numéricos puros.<br>
+            &nbsp;&nbsp;◦ <strong><code>Dot Product</code></strong>: Producto punto rápido en vectores normalizados.
+          </div>
+        </div>
+
+        <!-- 3. Points -->
+        <div class="card-info accent-green">
+          <div class="card-title">3. Points (Puntos)</div>
+          <div class="card-text">
+            Son la <strong>entidad central</strong> en Qdrant. Cada punto está compuesto por 3 partes:<br>
+            • <strong><code>id</code></strong>: Identificador único para el vector.<br>
+            • <strong><code>vector</code></strong>: La representación de alta dimensionalidad del dato (imagen, texto, audio).<br>
+            • <strong><code>payload</code></strong>: Un objeto JSON que almacena metadatos e información semántica adicional.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1.25rem;">
+        <!-- 4. Storage -->
+        <div class="card-info accent-amber">
+          <div class="card-title">4. Storage (Dos Modos de Almacenamiento)</div>
+          <div class="card-text">
+            Qdrant permite equilibrar velocidad y recursos disponibles mediante dos modos:<br>
+            • <strong><code>In-memory storage</code></strong>: Guarda todos los vectores en <strong>memoria RAM</strong>, ofreciendo la máxima velocidad (el disco solo se usa para persistencia).<br>
+            • <strong><code>Memmap storage</code></strong>: Crea un espacio de direcciones virtual asociado con el archivo en disco, <strong>reduciendo drásticamente el consumo de RAM</strong> con un costo moderado en rendimiento.
+          </div>
+        </div>
+
+        <!-- 5. Clients -->
+        <div class="card-info accent-rose">
+          <div class="card-title">5. Clients (Clientes y SDKs)</div>
+          <div class="card-text">
+            Qdrant cuenta con soporte oficial para diversos lenguajes de programación (<strong>JavaScript/TypeScript, Python, Rust, Go, .NET</strong>) y API REST/gRPC. Estos clientes hacen posible integrar el motor vectorial en aplicaciones de IA, motores de búsqueda semántica y sistemas de recomendación.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 7: Ejercicio Práctico con IA - Paso a Paso Inicial            -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="7">
+      <span class="slide-badge">🛠️ Ejercicio Práctico con IA • Paso a Paso</span>
+      <h2 class="slide-title">Construye un Buscador Semántico con IA y Arquitectura Qdrant</h2>
+      <p class="slide-desc">
+        Para poner en práctica todos los conceptos de la clase, hemos construido un proyecto completo en <strong>Node.js (ESM)</strong> que incluye un <strong>Modelo Generador de Embeddings de 8 Dimensiones Semánticas</strong> y un motor que implementa las <code>Collections</code>, <code>Points</code> (`id`, `vector`, `payload`) y <code>Distance Metrics</code> (`Cosine`, `Euclidean`, `Dot`) de Qdrant.
+      </p>
+
+      <div class="grid-2">
+        <div class="card-info accent-cyan">
+          <div class="card-title">
+            <span>1. Comandos para Crear el Proyecto desde Cero</span>
+            <button class="btn-copy" onclick="copiarTexto(`mkdir campuslands-bases-datos-vectoriales-qdrant-interactivo\ncd campuslands-bases-datos-vectoriales-qdrant-interactivo\nnpm init -y\nnpm install express\nmkdir -p src/engine src/ai src/data src/routes examples test\ntouch src/app.js src/engine/qdrantEngine.js src/ai/embeddingsModel.js src/data/knowledge.seed.js src/routes/vector.routes.js examples/qdrant-sdk-real.js`)">Copiar Comandos</button>
+          </div>
+          <div class="card-text">
+            Ejecuta estos comandos en tu terminal:
+            <div class="terminal-box">
+mkdir campuslands-bases-datos-vectoriales-qdrant-interactivo
+cd campuslands-bases-datos-vectoriales-qdrant-interactivo
+npm init -y
+npm install express
+
+# Crear estructura modular del laboratorio vectorial
+mkdir -p src/engine src/ai src/data src/routes examples test
+touch src/app.js
+touch src/engine/qdrantEngine.js
+touch src/ai/embeddingsModel.js
+touch src/data/knowledge.seed.js
+touch src/routes/vector.routes.js
+touch examples/qdrant-sdk-real.js</div>
+          </div>
+        </div>
+
+        <div class="card-info accent-purple">
+          <div class="card-title">2. ¿Cómo transforma nuestra IA el texto en un Vector de 8D?</div>
+          <div class="card-text">
+            Nuestro archivo <code>src/ai/embeddingsModel.js</code> analiza semánticamente cualquier frase en español y calcula un vector unitario normalizado L2 con <strong>8 dimensiones de significado</strong>:
+            <div class="terminal-box" style="color: #d8b4fe;">
+Dimensión [0]: IA, Redes Neuronales & LLMs
+Dimensión [1]: Backend, Node.js & Clientes SDK
+Dimensión [2]: Multimodalidad, Imágenes & Colores
+Dimensión [3]: Motor Qdrant, Grafos HNSW & Storage
+Dimensión [4]: Ciberseguridad & Control Rate Limit
+Dimensión [5]: Videojuegos, Consolas & Mundos RPG
+Dimensión [6]: Métricas de Distancia (Cosine, Euclidean)
+Dimensión [7]: Cloud, Docker & Escalabilidad Masiva</div>
+            Además, incluye la función <code>generarEmbeddingOpenAI()</code> lista para conectarse a <code>text-embedding-3-small</code> si deseas usar una API Key real.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 8: Explorador Interactivo Línea a Línea (Estilo VS Code)      -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="8">
+      <span class="slide-badge cyan">🔍 Editor VS Code Interactivo • Código Completo Sin Cortes</span>
+      <h2 class="slide-title">Explorador Línea a Línea del Motor Vectorial e IA (VS Code)</h2>
+      <p class="slide-desc">
+        Explora los 6 archivos del proyecto con el tema oficial de <strong>VS Code Dark+</strong>. Todas las líneas cuentan con salto de línea automático (wrap) para que siempre se lea el 100% del código sin recortes. <strong>Haz clic en cualquier línea</strong> para leer su explicación didáctica:
+      </p>
+
+      <div class="vscode-window">
+        <div class="vscode-tabs-bar">
+          <button class="vscode-tab active" data-file="qdrantEngine">
+            <span class="tab-icon-js">JS</span>
+            <span>src/engine/qdrantEngine.js</span>
+          </button>
+          <button class="vscode-tab" data-file="embeddingsModel">
+            <span class="tab-icon-js">JS</span>
+            <span>src/ai/embeddingsModel.js</span>
+          </button>
+          <button class="vscode-tab" data-file="vectorRoutes">
+            <span class="tab-icon-js">JS</span>
+            <span>src/routes/vector.routes.js</span>
+          </button>
+          <button class="vscode-tab" data-file="knowledgeSeed">
+            <span class="tab-icon-js">JS</span>
+            <span>src/data/knowledge.seed.js</span>
+          </button>
+          <button class="vscode-tab" data-file="app">
+            <span class="tab-icon-js">JS</span>
+            <span>src/app.js</span>
+          </button>
+          <button class="vscode-tab" data-file="qdrantReal">
+            <span class="tab-icon-js">JS</span>
+            <span>examples/qdrant-sdk-real.js</span>
+          </button>
+        </div>
+
+        <div class="vscode-breadcrumbs">
+          <div id="vscodeBreadcrumbs">
+            <span>campuslands-bases-datos-vectoriales</span> &gt; <span class="active-crumb">src/engine/qdrantEngine.js</span>
+          </div>
+          <button class="btn-copy" onclick="copiarArchivoActivo()">📋 Copiar Archivo Completo</button>
+        </div>
+
+        <div class="vscode-body">
+          <div class="vscode-editor" id="codeLinesPanel"></div>
+
+          <div class="vscode-inspector" id="codeDetailPanel">
+            <span class="detail-badge" id="detailBadge">QDRANTENGINE.JS : LÍNEA 1</span>
+            <h3 class="detail-heading" id="detailHeading">Haz clic en cualquier línea de código</h3>
+            <div class="detail-body" id="detailBody">
+              Haz clic sobre cualquier línea del editor a la izquierda para inspeccionar cómo se construyen las colecciones, cómo se calculan las distancias Cosine/Euclidean/Dot y cómo el modelo de IA genera embeddings vectoriales.
+            </div>
+            <div class="detail-box-tip" id="detailTip">
+              💡 <strong>Tip pedagógico:</strong> El código nunca se recorta ni usa barras horizontales incómodas; salta de línea automáticamente como en VS Code con <code>Alt + Z</code>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 9: Ejecución Local, Docker Qdrant y Pruebas cURL              -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="9">
+      <span class="slide-badge accent-green">💻 Ejecución Local y Pruebas en Terminal</span>
+      <h2 class="slide-title">Cómo Correr el Ejercicio de IA y Qdrant en tu Computadora</h2>
+      <p class="slide-desc">
+        Puedes ejecutar nuestro motor vectorial con IA directamente con Node.js (sin instalar nada extra) o levantar un contenedor oficial de Qdrant en Docker:
+      </p>
+
+      <div class="grid-2">
+        <div class="card-info accent-green">
+          <div class="card-title">
+            <span>1. Iniciar Servidor y Ejecutar Suite de Pruebas</span>
+            <button class="btn-copy" onclick="copiarTexto('npm install\nnpm test\nnpm run dev')">Copiar</button>
+          </div>
+          <div class="card-text">
+            Clona el repositorio, ejecuta las 5 pruebas automatizadas y levanta el servidor en el puerto <code>3000</code>:
+            <div class="terminal-box">
+npm install
+npm test
+npm run dev</div>
+          </div>
+        </div>
+
+        <div class="card-info accent-rose">
+          <div class="card-title">
+            <span>2. Opcional: Levantar Qdrant Oficial con Docker</span>
+            <button class="btn-copy" onclick="copiarTexto('docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant')">Copiar Docker</button>
+          </div>
+          <div class="card-text">
+            Si tienes Docker instalado y quieres probar también el archivo <code>examples/qdrant-sdk-real.js</code> contra el motor oficial en Rust:
+            <div class="terminal-box">
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+# Panel Web UI de Qdrant disponible en:
+# http://localhost:6333/dashboard</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-info accent-cyan">
+        <div class="card-title">3. Comandos cURL para Probar Búsqueda Semántica e Inserción de Points con IA</div>
+        <div class="grid-2" style="margin: 0.5rem 0;">
+          <div>
+            <strong>A. Búsqueda Semántica con IA (Similarity Search) [POST]</strong>
+            <div class="terminal-box">
+              <button class="btn-copy" style="float: right;" onclick="copiarTexto(`curl -X POST http://localhost:3000/api/collections/campuslands_ia/search -H \"Content-Type: application/json\" -d '{\"query\":\"motor que usa grafos HNSW y cuantizacion en memoria RAM\",\"limit\":3,\"distance\":\"Cosine\"}'`)">Copiar</button>
+curl -X POST http://localhost:3000/api/collections/campuslands_ia/search \
+  -H "Content-Type: application/json" \
+  -d '{"query":"motor que usa grafos HNSW y cuantizacion en memoria RAM","limit":3,"distance":"Cosine"}'</div>
+          </div>
+
+          <div>
+            <strong>B. Indexar un Nuevo Point Generando su Vector con IA [PUT]</strong>
+            <div class="terminal-box">
+              <button class="btn-copy" style="float: right;" onclick="copiarTexto(`curl -X PUT http://localhost:3000/api/collections/campuslands_ia/points -H \"Content-Type: application/json\" -d '{\"id\":107,\"titulo\":\"Clúster Qdrant en Docker\",\"categoria\":\"Cloud & Escalabilidad\",\"descripcion\":\"Contenedores para escalar billones de vectores en producción.\"}'`)">Copiar</button>
+curl -X PUT http://localhost:3000/api/collections/campuslands_ia/points \
+  -H "Content-Type: application/json" \
+  -d '{"id":107,"titulo":"Clúster Qdrant en Docker","categoria":"Cloud & Escalabilidad","descripcion":"Contenedores para escalar billones de vectores en producción."}'</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SLIDE 10: Laboratorio Práctico con IA en Vivo (Sandbox Semántico)   -->
+    <!-- =================================================================== -->
+    <section class="slide-item" data-step="10">
+      <span class="slide-badge rose">🤖 Laboratorio Práctico con IA en Vivo • Qdrant Sandbox</span>
+      <h2 class="slide-title">Simulador en Vivo: Embeddings IA + Búsqueda Vectorial en Qdrant</h2>
+      <p class="slide-desc">
+        Pon a prueba todo lo aprendido en la clase: escribe cualquier pregunta en lenguaje natural (sin importar si no usas las palabras exactas del título), elige la <strong>Métrica de Distancia de Qdrant</strong> (`Cosine`, `Euclidean` o `Dot`) y observa cómo el <strong>Modelo de Embeddings de IA</strong> genera el vector de 8 dimensiones y localiza los <strong>Points (`id`, `vector`, `payload`)</strong> más cercanos semánticamente:
+      </p>
+
+      <div class="sandbox-container">
+        <!-- Consultas Semánticas de Ejemplo -->
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Consultas de prueba con IA:</span>
+          <button class="btn-preset" onclick="cargarConsultaEjemplo('¿Qué motor usa grafos HNSW y cuantización para comprimir vectores en RAM?', 'Cosine')">
+            🕸️ Grafos HNSW & Qdrant
+          </button>
+          <button class="btn-preset" onclick="cargarConsultaEjemplo('Quiero crear un chatbot inteligente con redes neuronales que entienda lenguaje natural', 'Cosine')">
+            🤖 Embeddings & Chatbots RAG
+          </button>
+          <button class="btn-preset" onclick="cargarConsultaEjemplo('Cómo medir la proximidad entre vectores con coseno o distancia euclidiana en el plano', 'Euclidean')">
+            📐 Métricas Cosine vs Euclidean
+          </button>
+          <button class="btn-preset" onclick="cargarConsultaEjemplo('Jugar una aventura épica de mundo abierto en consola con espadas', 'Cosine')">
+            🎮 Aventura RPG (Significado)
+          </button>
+          <button class="btn-preset" onclick="cargarConsultaEjemplo('Proteger mi servidor Express contra ataques DoS limitando peticiones por IP', 'Cosine')">
+            🛡️ Seguridad Rate Limit
+          </button>
+        </div>
+
+        <!-- Barra de Búsqueda Semántica -->
+        <div style="display: flex; flex-wrap: wrap; gap: 0.65rem;">
+          <input type="text" id="inpSemanticQuery" class="input-query" value="¿Qué motor usa grafos HNSW y cuantización para comprimir vectores en RAM?" placeholder="Escribe tu consulta en lenguaje natural...">
+          <select id="selDistanceMetric" class="select-metric" onchange="ejecutarBusquedaVectorialVivo()">
+            <option value="Cosine">Métrica: Cosine Similarity</option>
+            <option value="Euclidean">Métrica: Euclidean Distance (L2)</option>
+            <option value="Dot">Métrica: Dot Product</option>
+          </select>
+          <button class="btn-send" onclick="ejecutarBusquedaVectorialVivo()">
+            <span>🧠 Vectorizar con IA y Buscar</span>
+          </button>
+        </div>
+
+        <!-- Panel 1: Vector de 8 Dimensiones Generado por el Modelo de IA para la Consulta -->
+        <div class="card-info accent-purple">
+          <div class="card-title">
+            <span>1. Vector de la Consulta Generado por el Modelo de Embeddings IA (8 Dimensiones)</span>
+            <span id="lblQueryVectorRaw" style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--campus-cyan);"></span>
+          </div>
+          <div class="vector-bars-grid" id="queryVectorBars"></div>
+        </div>
+
+        <!-- Panel 2: Respuesta del Asistente IA (RAG) + Top-K Points más cercanos -->
+        <div class="grid-2" style="margin: 0;">
+          <div class="card-info accent-green">
+            <div class="card-title">
+              <span>2. Recuperación de Información + Asistente IA (RAG)</span>
+              <span id="badgeMetricActive" style="font-family: var(--font-mono); font-size: 0.75rem; color: #4ade80;">Cosine</span>
+            </div>
+            <div id="ragAnswerBox" class="card-text" style="background: #060a12; border: 1px solid #1e293b; padding: 0.9rem; border-radius: 10px; color: #e2e8f0; margin-bottom: 0.85rem;"></div>
+            <div id="searchResultsCards" style="display: flex; flex-direction: column; gap: 0.65rem;"></div>
+          </div>
+
+          <!-- Panel 3: Agregar un Nuevo Point a la Colección Qdrant con IA -->
+          <div class="card-info accent-cyan">
+            <div class="card-title">3. Insertar Nuevo Point en la Colección (Upsert con IA)</div>
+            <div class="card-text" style="margin-bottom: 0.75rem;">
+              Escribe un nuevo documento para la colección <code>campuslands_ia</code>. El modelo de IA calculará automáticamente su vector de 8 dimensiones y lo indexará como un nuevo <strong>Point (<code>id + vector + payload</code>)</strong>:
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <input type="text" id="newPointTitle" class="input-query" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;" placeholder="Título del Point (ej: Clúster de Qdrant en Docker para Billones de Vectores)" value="Clúster de Qdrant en Docker para Billones de Vectores">
+              <input type="text" id="newPointCategory" class="input-query" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;" placeholder="Categoría en el Payload JSON" value="Cloud & Escalabilidad">
+              <input type="text" id="newPointDesc" class="input-query" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;" placeholder="Descripción semántica..." value="Despliegue de contenedores en producción en la nube para escalar búsquedas vectoriales a gran volumen y velocidad.">
+              <button class="btn-action" style="justify-content: center; border-color: var(--node-green); color: #4ade80; padding: 0.6rem;" onclick="insertarNuevoPointConIA()">
+                ➕ Vectorizar con IA e Indexar Point en 'campuslands_ia'
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla Completa de Points en la Colección Qdrant -->
+        <div class="table-wrap" style="margin: 0;">
+          <div style="background: #0d1322; padding: 0.75rem 1.1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle);">
+            <span style="font-weight: 700; font-size: 0.88rem; color: #fff;">
+              🗄️ Colección Activa en Qdrant: <code>campuslands_ia</code> (Storage: <code>in-memory</code> | Index: <code>HNSW + PQ</code>)
+            </span>
+            <span id="pointsTotalBadge" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--campus-cyan);">
+              Total: 6 Points indexados
+            </span>
+          </div>
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Point ID</th>
+                <th>Payload JSON (Título y Categoría)</th>
+                <th>Vector Embedding 8D (Generado por IA)</th>
+                <th>Descripción Semántica en Payload</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyQdrantPoints"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Barra de Navegación Inferior Flotante (Dock) -->
+  <div class="slide-nav-dock">
+    <button id="btnPrev" class="dock-btn" title="Diapositiva Anterior (Flecha Izquierda)">‹</button>
+    <div id="dockCounter" class="dock-counter">1 / 10</div>
+    <button id="btnNext" class="dock-btn" title="Siguiente Diapositiva (Flecha Derecha)">›</button>
+  </div>
+
+  <!-- Modal de Índice Temático (TOC) -->
+  <div id="modalTOC" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📑 Índice de la Clase: Bases de Datos Vectoriales y Qdrant</h3>
+        <button id="btnCloseTOC" class="btn-close-modal">&times;</button>
+      </div>
+      <ul class="toc-list" id="tocList">
+        <li class="toc-item current" onclick="goToStep(1)">
+          <div><span class="toc-num">01</span><span>1. Bases de Datos Vectoriales y ¿Por qué las Vector Databases?</span></div>
+          <span style="color: var(--text-dim); font-size: 0.78rem;">Introducción</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(2)">
+          <div><span class="toc-num">02</span><span>1.1. Definición y Simulador del Grid 2D de Animales</span></div>
+          <span style="color: #38bdf8; font-size: 0.78rem; font-weight: 700;">Grid 2D Interactivo</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(3)">
+          <div><span class="toc-num">03</span><span>1.2. Funcionamiento: La Máquina de Crayones, Hashing, PQ y HNSW</span></div>
+          <span style="color: #fbbf24; font-size: 0.78rem; font-weight: 700;">Caja de Crayones</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(4)">
+          <div><span class="toc-num">04</span><span>1.3. Funcionamiento a Nivel de Arquitectura y Similarity Search</span></div>
+          <span style="color: var(--text-dim); font-size: 0.78rem;">Pipeline IA</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(5)">
+          <div><span class="toc-num">05</span><span>1.4. Qdrant: Grafos HNSW y Product Quantization</span></div>
+          <span style="color: #fb7185; font-size: 0.78rem; font-weight: 700;">Motor Qdrant</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(6)">
+          <div><span class="toc-num">06</span><span>1.5. Arquitectura de Qdrant: Collections, Metrics, Points, Storage, Clients</span></div>
+          <span style="color: #a855f7; font-size: 0.78rem; font-weight: 700;">5 Componentes</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(7)">
+          <div><span class="toc-num">07</span><span>Ejercicio Práctico con IA: Setup y Modelo de Embeddings 8D</span></div>
+          <span style="color: #38bdf8; font-size: 0.78rem; font-weight: 700;">Paso a Paso</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(8)">
+          <div><span class="toc-num">08</span><span>Explorador de Código Línea a Línea (Estilo VS Code Dark+)</span></div>
+          <span style="color: #dcdcaa; font-size: 0.78rem; font-weight: 700;">VS Code Dark+</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(9)">
+          <div><span class="toc-num">09</span><span>Ejecución Local, Docker Qdrant y Pruebas con cURL</span></div>
+          <span style="color: #4ade80; font-size: 0.78rem; font-weight: 700;">Terminal Local</span>
+        </li>
+        <li class="toc-item" onclick="goToStep(10)">
+          <div><span class="toc-num">10</span><span>Laboratorio Práctico en Vivo: Buscador Semántico con IA y Qdrant</span></div>
+          <span style="color: #fb7185; font-size: 0.78rem; font-weight: 700;">Sandbox IA</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Toast de Notificaciones -->
+  <div id="toastMsg" class="toast-msg">Copiado al portapapeles</div>
+
+  <!-- ===================================================================== -->
+  <!-- MOTOR JAVASCRIPT: SIMULADORES 2D/CRAYONES, LEXER VS CODE Y SANDBOX IA -->
+  <!-- ===================================================================== -->
+  <script>
+    // --- 1. SIMULADOR INTERACTIVO DEL PLANO 2D DE ANIMALES (SECCIÓN 1.1 - SLIDE 2) ---
+    const datosAnimales2D = {
+      A: {
+        titulo: "🐕 Imagen A: Marrón, Tamaño Mediano",
+        coords: "[X: 1 (Marrón), Y: 2 (Mediano)]",
+        vecino: "Imagen B (Negro, Pequeño) e Imagen E (Negro, Grande) a distancia √2 ≈ 1.41",
+        line: { x1: 165, y1: 150, x2: 310, y2: 225 }
+      },
+      B: {
+        titulo: "🐈‍⬛ Imagen B: Negro, Tamaño Pequeño",
+        coords: "[X: 2 (Negro), Y: 1 (Pequeño)]",
+        vecino: "Imagen A (Marrón, Mediano) — comparten cercanía en escala de color y tamaño",
+        line: { x1: 310, y1: 225, x2: 165, y2: 150 }
+      },
+      C: {
+        titulo: "🐻‍❄️ Imagen C: Blanco, Tamaño Grande",
+        coords: "[X: 3 (Blanco), Y: 3 (Grande)]",
+        vecino: "Imagen E (Negro, Grande) a solo 1 unidad de distancia horizontal (mismo tamaño grande)",
+        line: { x1: 450, y1: 70, x2: 310, y2: 70 }
+      },
+      E: {
+        titulo: "🐻 Imagen E: Negro, Tamaño Grande",
+        coords: "[X: 2 (Negro), Y: 3 (Grande)]",
+        vecino: "Imagen C (Blanco, Grande) — máxima proximidad por coincidir en el eje Y (Tamaño Grande)",
+        line: { x1: 310, y1: 70, x2: 450, y2: 70 }
+      }
+    };
+
+    function seleccionarPuntoAnimal(key) {
+      const info = datosAnimales2D[key];
+      if (!info) return;
+      document.getElementById("animalCardTitle").textContent = info.titulo;
+      document.getElementById("animalCardDesc").innerHTML = `
+        • <strong>Vector de Características 2D:</strong> <code>${info.coords}</code><br>
+        • <strong>Punto más cercano (k-NN):</strong> ${info.vecino}.<br><br>
+        Observa la línea verde punteada en el plano 2D conectando los vectores con mayor similitud semántica.
+      `;
+      const lineEl = document.getElementById("svgNearestLine");
+      lineEl.setAttribute("x1", info.line.x1);
+      lineEl.setAttribute("y1", info.line.y1);
+      lineEl.setAttribute("x2", info.line.x2);
+      lineEl.setAttribute("y2", info.line.y2);
+    }
+
+    // --- 2. SIMULADOR DE LA MÁQUINA MÁGICA DE CRAYONES (SECCIÓN 1.2 - SLIDE 3) ---
+    const cajaCrayones = [
+      { nombre: "Azul Cielo", hex: "#38bdf8", rgb: [56, 189, 248] },
+      { nombre: "Azul Océano", hex: "#0284c7", rgb: [2, 132, 199] },
+      { nombre: "Azul Marino", hex: "#1d4ed8", rgb: [29, 78, 216] },
+      { nombre: "Cian Turquesa", hex: "#06b6d4", rgb: [6, 182, 212] },
+      { nombre: "Verde Esmeralda", hex: "#10b981", rgb: [16, 185, 129] },
+      { nombre: "Verde Lima", hex: "#84cc16", rgb: [132, 204, 22] },
+      { nombre: "Amarillo Sol", hex: "#eab308", rgb: [234, 179, 8] },
+      { nombre: "Naranja Fuego", hex: "#f97316", rgb: [249, 115, 22] },
+      { nombre: "Rojo Carmesí", hex: "#f43f5e", rgb: [244, 63, 94] },
+      { nombre: "Rosa Coral", hex: "#ec4899", rgb: [236, 72, 153] },
+      { nombre: "Violeta Real", hex: "#a855f7", rgb: [168, 85, 247] },
+      { nombre: "Índigo Profundo", hex: "#6366f1", rgb: [99, 102, 241] }
+    ];
+
+    function similitudCosenoRGB(a, b) {
+      const dot = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+      const normA = Math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+      const normB = Math.sqrt(b[0]*b[0] + b[1]*b[1] + b[2]*b[2]);
+      return dot / (normA * normB);
+    }
+
+    function buscarCrayonesSimilares(targetRgb, nombreRef) {
+      const container = document.getElementById("crayonGridContainer");
+      const banner = document.getElementById("crayonStatusBanner");
+      if (!container) return;
+
+      const clasificados = cajaCrayones
+        .map(c => ({
+          ...c,
+          score: similitudCosenoRGB(targetRgb, c.rgb)
+        }))
+        .sort((a, b) => b.score - a.score);
+
+      banner.textContent = `🔍 Referencia buscada: "${nombreRef}" — Vector RGB [${targetRgb.join(", ")}] ➔ Ordenados de mayor a menor similitud vectorial:`;
+
+      container.innerHTML = clasificados
+        .map((c, idx) => {
+          const isTop = idx < 3;
+          return `
+            <div class="crayon-item ${isTop ? 'top-match' : ''}" onclick="buscarCrayonesSimilares([${c.rgb.join(',')}], '${c.nombre}')">
+              <div class="crayon-tip" style="background: ${c.hex};"></div>
+              <div style="font-weight: 700; font-size: 0.8rem; color: #fff;">${c.nombre}</div>
+              <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">
+                [${c.rgb.join(", ")}]
+              </div>
+              <div style="margin-top: 0.35rem; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 800; color: ${isTop ? '#4ade80' : '#94a3b8'};">
+                ${isTop ? '⭐ ' : ''}Sim: ${(c.score * 100).toFixed(1)}%
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    // --- 3. ARCHIVOS COMPLETOS DEL PROYECTO PARA EL EXPLORADOR VS CODE (SLIDE 8) ---
+    const fileCodesRaw = {
+      qdrantEngine: `/**
+ * Motor Pedagógico de Base de Datos Vectorial estilo Qdrant (src/engine/qdrantEngine.js)
+ * --------------------------------------------------------------------------------------
+ * Implementa en JavaScript puro los 5 pilares de la Arquitectura de Qdrant (Sección 1.5):
+ * 1. Collections (Colecciones): Espacio nombrado con dimensión fija y métrica única.
+ * 2. Distance Metrics (Métricas de Distancia): Cosine, Euclidean y Dot Product.
+ * 3. Points (Puntos): Entidad central formada por { id, vector, payload }.
+ * 4. Storage (Almacenamiento): Modo 'in-memory' (RAM) o 'memmap' (Disco virtual).
+ * 5. Similarity Search: Búsqueda por similitud semántica (k-NN / HNSW) + filtros de payload.
+ */
+
+export class QdrantCollection {
+  constructor(name, config = {}) {
+    this.name = name;
+    this.size = config.size || 8; // Dimensionalidad obligatoria de los vectores
+    this.distance = config.distance || "Cosine"; // 'Cosine' | 'Euclidean' | 'Dot'
+    this.storage = config.storage || "in-memory"; // 'in-memory' | 'memmap'
+    this.hnswConfig = {
+      m: 16,
+      efConstruct: 100,
+      quantization: "ProductQuantization (PQ)"
+    };
+    this.points = new Map(); // Almacena Points indexados por su ID único
+  }
+
+  // Inserta o actualiza (Upsert) uno o varios Points { id, vector, payload }
+  upsert(pointsArray) {
+    const list = Array.isArray(pointsArray) ? pointsArray : [pointsArray];
+
+    for (const pt of list) {
+      if (pt.id === undefined || pt.id === null) {
+        throw new Error("Cada Point en Qdrant requiere un 'id' único.");
+      }
+      if (!Array.isArray(pt.vector) || pt.vector.length !== this.size) {
+        throw new Error(
+          \`Dimensión inválida en Point ID \${pt.id}: la colección '\${this.name}' exige dimensión \${this.size}.\`
+        );
+      }
+
+      this.points.set(pt.id, {
+        id: pt.id,
+        vector: pt.vector.map(Number),
+        payload: pt.payload || {}
+      });
+    }
+
+    return {
+      status: "completed",
+      collection: this.name,
+      upsertedCount: list.length,
+      totalPoints: this.points.size
+    };
+  }
+
+  // Ejecuta una Búsqueda por Similitud (Similarity Search)
+  search(queryVector, options = {}) {
+    const limit = options.limit || 4;
+    const filterCategory = options.category || null;
+    const results = [];
+
+    for (const point of this.points.values()) {
+      if (filterCategory && point.payload?.categoria !== filterCategory) {
+        continue;
+      }
+
+      const metricValue = calcularSimilitud(queryVector, point.vector, this.distance);
+
+      results.push({
+        id: point.id,
+        score: Number(metricValue.score.toFixed(4)),
+        rawDistance: Number(metricValue.rawDistance.toFixed(4)),
+        metricUsed: this.distance,
+        payload: point.payload
+      });
+    }
+
+    // Ordenar de mayor a menor similitud semántica
+    results.sort((a, b) => b.score - a.score);
+    return results.slice(0, limit);
+  }
+}
+
+export function calcularSimilitud(vecA, vecB, metric = "Cosine") {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  let sumSqDiff = 0;
+
+  for (let i = 0; i < vecA.length; i++) {
+    const a = vecA[i];
+    const b = vecB[i];
+    dot += a * b;
+    normA += a * a;
+    normB += b * b;
+    const diff = a - b;
+    sumSqDiff += diff * diff;
+  }
+
+  const euclideanDist = Math.sqrt(sumSqDiff);
+
+  if (metric === "Euclidean") {
+    return {
+      score: 1 / (1 + euclideanDist),
+      rawDistance: euclideanDist
+    };
+  }
+
+  if (metric === "Dot") {
+    return {
+      score: dot,
+      rawDistance: dot
+    };
+  }
+
+  // Por defecto: Cosine Similarity
+  const denom = Math.sqrt(normA) * Math.sqrt(normB);
+  const cosine = denom === 0 ? 0 : dot / denom;
+  return {
+    score: cosine,
+    rawDistance: 1 - cosine
+  };
+}`,
+
+      embeddingsModel: `/**
+ * Modelo Generador de Embeddings con IA (src/ai/embeddingsModel.js)
+ * -----------------------------------------------------------------
+ * Traduce cualquier texto en lenguaje natural a un vector numérico normalizado
+ * de 8 dimensiones semánticas, tal como explica la Sección 1.3 de la clase.
+ */
+
+export const DIMENSIONES_SEMANTICAS = [
+  "IA & Lenguaje Natural",
+  "Backend & Clientes SDK",
+  "Multimodalidad & Colores",
+  "Qdrant, HNSW & Storage",
+  "Ciberseguridad & Rate Limit",
+  "Videojuegos & Gaming",
+  "Métricas de Distancia",
+  "Cloud & Escalabilidad"
+];
+
+export function generarEmbeddingIA(texto) {
+  const limpio = String(texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[^a-z0-9\\s]/g, " ");
+
+  const palabras = limpio.split(/\\s+/).filter(Boolean);
+  const vectorBruto = new Array(8).fill(0.05);
+
+  for (const palabra of palabras) {
+    DICCIONARIO_SEMANTICO.forEach((listaClaves, dimIndex) => {
+      for (const clave of listaClaves) {
+        if (palabra === clave) {
+          vectorBruto[dimIndex] += 1.2;
+        } else if (palabra.length >= 4 && (palabra.includes(clave) || clave.includes(palabra))) {
+          vectorBruto[dimIndex] += 0.45;
+        }
+      }
+    });
+  }
+
+  // Normalización L2 para que el vector tenga magnitud unitaria = 1.0
+  const magnitud = Math.sqrt(vectorBruto.reduce((acc, val) => acc + val * val, 0));
+  return vectorBruto.map((val) => Number((val / magnitud).toFixed(4)));
+}`,
+
+      vectorRoutes: `import { Router } from "express";
+import { qdrantServer } from "../engine/qdrantEngine.js";
+import { generarEmbeddingIA, DIMENSIONES_SEMANTICAS } from "../ai/embeddingsModel.js";
+
+const router = Router();
+
+// 1. [GET] /api/collections/:name - Inspeccionar colección y sus Points
+router.get("/collections/:name", (req, res) => {
+  const col = qdrantServer.getCollection(req.params.name);
+  if (!col) {
+    return res.status(404).json({ exito: false, error: "Colección no encontrada." });
+  }
+  res.status(200).json({ exito: true, coleccion: col.getInfo() });
+});
+
+// 2. [PUT] /api/collections/:name/points - Insertar Point vectorizado con IA
+router.put("/collections/:name/points", (req, res) => {
+  const col = qdrantServer.getCollection(req.params.name);
+  const { id, titulo, categoria = "General", descripcion = "" } = req.body;
+
+  // El Modelo de Embeddings traduce el texto en un vector de 8 dimensiones
+  const textoParaEmbedding = \`\${titulo}. \${categoria}. \${descripcion}\`;
+  const vectorGenerado = generarEmbeddingIA(textoParaEmbedding);
+
+  const resultado = col.upsert({
+    id: Number(id) || id,
+    vector: vectorGenerado,
+    payload: { titulo, categoria, descripcion }
+  });
+
+  res.status(200).json({
+    exito: true,
+    operacion: resultado,
+    pointGuardado: { id, vector: vectorGenerado, payload: { titulo, categoria, descripcion } }
+  });
+});
+
+// 3. [POST] /api/collections/:name/search - Búsqueda Semántica por Similitud (Similarity Search)
+router.post("/collections/:name/search", (req, res) => {
+  const col = qdrantServer.getCollection(req.params.name);
+  const { query, limit = 3, distance = "Cosine" } = req.body;
+
+  col.distance = distance;
+
+  // Paso 1: Generar el vector de la consulta del usuario con IA
+  const queryVector = generarEmbeddingIA(query);
+
+  // Paso 2: Comparar contra los vectores almacenados en Qdrant
+  const resultados = col.search(queryVector, { limit: Number(limit) });
+
+  res.status(200).json({
+    exito: true,
+    consultaOriginal: query,
+    metricaUtilizada: col.distance,
+    vectorConsultaGeneradoPorIA: queryVector,
+    resultadosSimilitud: resultados
+  });
+});
+
+export default router;`,
+
+      knowledgeSeed: `import { generarEmbeddingIA } from "../ai/embeddingsModel.js";
+
+const DOCUMENTOS_BASE = [
+  {
+    id: 101,
+    titulo: "Qdrant: Motor de Búsqueda Vectorial con Grafos HNSW",
+    categoria: "Bases de Datos Vectoriales",
+    descripcion: "Base de datos vectorial open-source que indexa embeddings usando grafos HNSW y Product Quantization en memoria RAM o Memmap."
+  },
+  {
+    id: 102,
+    titulo: "Modelos de Embeddings e Inteligencia Artificial Semántica",
+    categoria: "Inteligencia Artificial",
+    descripcion: "Redes neuronales que transforman texto en lenguaje natural, imágenes y audio en vectores numéricos para chatbots con RAG."
+  },
+  {
+    id: 103,
+    titulo: "Métricas de Distancia: Cosine Similarity, Euclidean y Dot Product",
+    categoria: "Matemáticas & Algoritmos",
+    descripcion: "Criterios matemáticos definidos al crear una colección en Qdrant para medir la similitud y proximidad entre vectores."
+  }
+];
+
+export function obtenerPuntosSemilla() {
+  return DOCUMENTOS_BASE.map((doc) => ({
+    id: doc.id,
+    vector: generarEmbeddingIA(\`\${doc.titulo}. \${doc.categoria}. \${doc.descripcion}\`),
+    payload: doc
+  }));
+}`,
+
+      app: `import express from "express";
+import { qdrantServer } from "./engine/qdrantEngine.js";
+import { obtenerPuntosSemilla } from "./data/knowledge.seed.js";
+import vectorRouter from "./routes/vector.routes.js";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// 1. Crear la colección 'campuslands_ia' en memoria con dimensión 8 y métrica Cosine
+const coleccion = qdrantServer.createCollection("campuslands_ia", {
+  size: 8,
+  distance: "Cosine",
+  storage: "in-memory"
+});
+
+// 2. Indexar los Points iniciales { id, vector, payload }
+coleccion.upsert(obtenerPuntosSemilla());
+
+app.use(express.json());
+app.use("/api", vectorRouter);
+
+app.listen(PORT, () => {
+  console.log(\`🧠 Servidor Vectorial Qdrant + IA activo en http://localhost:\${PORT}\`);
+});`,
+
+      qdrantReal: `/**
+ * Conexión a un Servidor Real de Qdrant en Docker (examples/qdrant-sdk-real.js)
+ * Comando Docker: docker run -p 6333:6333 qdrant/qdrant
+ */
+const QDRANT_URL = "http://localhost:6333";
+
+export async function demoQdrantReal() {
+  // 1. Crear Collection con dimensión 4 y métrica Cosine
+  await fetch(\`\${QDRANT_URL}/collections/campuslands_conocimiento\`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vectors: { size: 4, distance: "Cosine" }
+    })
+  });
+
+  // 2. Insertar Points (id + vector + payload JSON)
+  await fetch(\`\${QDRANT_URL}/collections/campuslands_conocimiento/points?wait=true\`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      points: [
+        {
+          id: 1,
+          vector: [0.11, 0.19, 0.95, 0.88],
+          payload: { titulo: "Bases de Datos Vectoriales con Qdrant", categoria: "IA" }
+        }
+      ]
+    })
+  });
+}`
+    };
+
+    // --- 4. MOTOR LÉXICO DE RESALTADO SINTÁCTICO VS CODE DARK+ ---
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function highlightVSCode(codeLine) {
+      if (!codeLine || codeLine.trim().length === 0) {
+        return codeLine ? escapeHtml(codeLine) : "&nbsp;";
+      }
+
+      const trimmed = codeLine.trim();
+      if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*") || trimmed.startsWith("*/")) {
+        return `<span class="hl-cmt">${escapeHtml(codeLine)}</span>`;
+      }
+
+      const tokenRegex = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(`[^`\\]*(?:\\.[^`\\]*)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|(\b(?:import|export|from|default|class|constructor|const|let|var|function|return|if|else|for|of| continue|new|typeof|async|await|throw)\b)|(\b(?:QdrantCollection|Router|Map|Array|Math|Number|String|Error|JSON|Object)\b)|(\b[a-zA-Z_$][a-zA-Z0-9_$]*(?=\s*\())|(\b(?:this|req|res|app|router|col|coleccion|qdrantServer|points|point|pt|vector|payload|id|score|distance|storage|size|query|queryVector|resultados|metric|vecA|vecB|dot|normA|normB|euclideanDist)\b)|([{}()\[\]])|(=>|===|!==|==|!=|<=|>=|[=+\-*\/%&|!<>?:,;.])/g;
+
+      let result = "";
+      let lastIndex = 0;
+      let match;
+
+      while ((match = tokenRegex.exec(codeLine)) !== null) {
+        if (match.index > lastIndex) {
+          result += escapeHtml(codeLine.slice(lastIndex, match.index));
+        }
+
+        const [raw, cmt, str, num, kw, typ, fn, param, punc, op] = match;
+        const esc = escapeHtml(raw);
+
+        if (cmt) result += `<span class="hl-cmt">${esc}</span>`;
+        else if (str) result += `<span class="hl-str">${esc}</span>`;
+        else if (num) result += `<span class="hl-num">${esc}</span>`;
+        else if (kw) result += `<span class="hl-kw">${esc}</span>`;
+        else if (typ) result += `<span class="hl-type">${esc}</span>`;
+        else if (fn) result += `<span class="hl-fn">${esc}</span>`;
+        else if (param) result += `<span class="hl-param">${esc}</span>`;
+        else if (punc) result += `<span class="hl-punc">${esc}</span>`;
+        else if (op) result += `<span class="hl-op">${esc}</span>`;
+        else result += esc;
+
+        lastIndex = tokenRegex.lastIndex;
+      }
+
+      if (lastIndex < codeLine.length) {
+        result += escapeHtml(codeLine.slice(lastIndex));
+      }
+
+      return result;
+    }
+
+    function obtenerExplicacionLinea(fileKey, ln, codeText) {
+      const clean = codeText.trim();
+      if (!clean) {
+        return {
+          title: "Separador Visual (Línea en Blanco)",
+          desc: "Espacio en blanco para separar bloques lógicos y mantener la legibilidad en VS Code.",
+          tip: "El orden visual facilita auditar las etapas de vectorización y búsqueda."
+        };
+      }
+      if (clean.startsWith("//") || clean.startsWith("/*") || clean.startsWith("*")) {
+        return {
+          title: "Documentación Pedagógica / Comentario",
+          desc: "Explica el concepto de Qdrant o del modelo de Embeddings aplicado en este bloque de código.",
+          tip: "Documenta siempre la dimensionalidad y la métrica de distancia de tus colecciones."
+        };
+      }
+      if (clean.includes("class QdrantCollection")) {
+        return {
+          title: "Clase QdrantCollection (Sección 1.5 - Collections)",
+          desc: "Representa una Colección de Qdrant: un espacio de trabajo nombrado donde todos los puntos comparten la misma dimensión y métrica de distancia.",
+          tip: "En Qdrant no puedes mezclar vectores de distinta dimensión en un mismo campo vectorial."
+        };
+      }
+      if (clean.includes("this.distance =")) {
+        return {
+          title: "Definición de la Métrica de Distancia (Distance Metrics)",
+          desc: "Establece el criterio matemático (<code>Cosine</code>, <code>Euclidean</code> o <code>Dot</code>) con el que se compararán los vectores de esta colección.",
+          tip: "La métrica se elige al crear la colección según el modelo de embeddings utilizado."
+        };
+      }
+      if (clean.includes("this.storage =")) {
+        return {
+          title: "Modo de Almacenamiento (Storage: in-memory vs memmap)",
+          desc: "Configura si la colección prioriza velocidad máxima en RAM (<code>in-memory</code>) o ahorro de memoria mapeando a disco (<code>memmap</code>).",
+          tip: "In-memory ofrece la menor latencia posible para búsquedas en tiempo real."
+        };
+      }
+      if (clean.includes("upsert(pointsArray)")) {
+        return {
+          title: "Operación Upsert de Points (id + vector + payload)",
+          desc: "Inserta nuevos puntos o actualiza los existentes si el <code>id</code> ya estaba registrado en la colección.",
+          tip: "Verifica automáticamente que el vector tenga exactamente la dimensión exigida por la colección."
+        };
+      }
+      if (clean.includes("search(queryVector")) {
+        return {
+          title: "Búsqueda por Similitud (Similarity Search)",
+          desc: "Recibe el vector de la consulta, calcula su similitud frente a los puntos almacenados y devuelve los más cercanos ordenados por <code>score</code>.",
+          tip: "También permite filtrar por propiedades del Payload JSON antes de calcular la distancia."
+        };
+      }
+      if (clean.includes("calcularSimilitud(")) {
+        return {
+          title: "Motor Matemático de Métricas (Cosine, Euclidean, Dot)",
+          desc: "Calcula el producto punto, las normas vectoriales y la distancia euclidiana entre el vector de la consulta y cada punto de Qdrant.",
+          tip: "Para textos y lenguaje natural, Cosine Similarity es la métrica más utilizada."
+        };
+      }
+      if (clean.includes("generarEmbeddingIA(")) {
+        return {
+          title: "Invocación al Modelo de Embeddings de IA",
+          desc: "Convierte texto sin procesar en un vector numérico normalizado de 8 dimensiones semánticas.",
+          tip: "Tanto los documentos al guardarse como las preguntas del usuario pasan por el mismo modelo."
+        };
+      }
+
+      return {
+        title: `Línea ${ln}: ${clean.substring(0, 38)}${clean.length > 38 ? "..." : ""}`,
+        desc: `Instrucción de procesamiento vectorial o configuración dentro de <code>${fileKey}</code>.`,
+        tip: "Haz clic en otras líneas para explorar Collections, Points, Embeddings y Similarity Search."
+      };
+    }
+
+    let currentActiveFile = "qdrantEngine";
+    function renderCodeFile(fileKey) {
+      currentActiveFile = fileKey;
+      const rawText = fileCodesRaw[fileKey] || "";
+      const lines = rawText.split("\n");
+      const panel = document.getElementById("codeLinesPanel");
+      panel.innerHTML = "";
+
+      document.getElementById("vscodeBreadcrumbs").innerHTML =
+        `<span>campuslands-bases-datos-vectoriales</span> &gt; <span class="active-crumb">${fileKey}.js</span>`;
+
+      lines.forEach((codeLine, index) => {
+        const ln = index + 1;
+        const row = document.createElement("div");
+        row.className = "code-row" + (index === 0 ? " active" : "");
+        row.innerHTML = `<span class="code-ln">${ln}</span><span class="code-text">${highlightVSCode(codeLine)}</span>`;
+        row.onclick = () => {
+          document.querySelectorAll("#codeLinesPanel .code-row").forEach(r => r.classList.remove("active"));
+          row.classList.add("active");
+          const info = obtenerExplicacionLinea(fileKey, ln, codeLine);
+          document.getElementById("detailBadge").textContent = `${fileKey.toUpperCase()} : LÍNEA ${ln}`;
+          document.getElementById("detailHeading").textContent = info.title;
+          document.getElementById("detailBody").innerHTML = info.desc;
+          document.getElementById("detailTip").innerHTML = `💡 <strong>Consejo:</strong> ${info.tip}`;
+        };
+        panel.appendChild(row);
+      });
+    }
+
+    function copiarArchivoActivo() {
+      copiarTexto(fileCodesRaw[currentActiveFile] || "");
+    }
+
+    document.querySelectorAll(".vscode-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".vscode-tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderCodeFile(btn.dataset.file);
+      });
+    });
+
+    // --- 5. LABORATORIO PRÁCTICO EN VIVO: MODELO DE EMBEDDINGS 8D + QDRANT SANDBOX (SLIDE 10) ---
+    const DIMENSIONES_NOMBRES = [
+      "0: IA & Lenguaje Natural",
+      "1: Backend & SDKs",
+      "2: Multimodal & Colores",
+      "3: Qdrant, HNSW & Storage",
+      "4: Seguridad & Rate Limit",
+      "5: Videojuegos & RPG",
+      "6: Métricas de Distancia",
+      "7: Cloud & Escalabilidad"
+    ];
+
+    const DICCIONARIO_BROWSER = [
+      ["ia", "inteligencia", "artificial", "embedding", "embeddings", "llm", "chatgpt", "openai", "gemini", "semantica", "semantico", "significado", "lenguaje", "natural", "asistente", "conversacional", "chatbot", "rag", "neuronal", "redes", "neuronales"],
+      ["backend", "node", "nodejs", "express", "api", "rest", "servidor", "endpoint", "enrutador", "http", "json", "javascript", "typescript", "cliente", "clientes", "sdk"],
+      ["imagen", "imagenes", "audio", "video", "color", "colores", "crayon", "crayones", "azul", "marron", "blanco", "negro", "visual", "multimodal"],
+      ["qdrant", "hnsw", "grafo", "grafos", "cuantizacion", "quantization", "hashing", "bucket", "storage", "memoria", "ram", "memmap", "disco", "indexar", "indexacion", "motor", "vectorial", "comprimir"],
+      ["seguridad", "ciberseguridad", "proteger", "proteccion", "ratelimit", "limit", "dos", "ataque", "denegacion", "ip", "429", "bloqueo", "tokens", "trafico"],
+      ["videojuego", "videojuegos", "juego", "juegos", "zelda", "elden", "ring", "rpg", "aventura", "consola", "consolas", "switch", "ps5", "gamer", "jugador", "espada", "espadas", "mundo", "abierto"],
+      ["metrica", "metricas", "distancia", "coseno", "cosine", "euclidiana", "euclidean", "dot", "producto", "proximidad", "cercano", "criterio", "plano", "grid", "knn", "faiss"],
+      ["escalabilidad", "escalar", "billones", "millones", "volumen", "docker", "contenedor", "contenedores", "produccion", "cluster", "nube", "velocidad"]
+    ];
+
+    function generarEmbeddingBrowser(texto) {
+      const limpio = String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ");
+      const palabras = limpio.split(/\s+/).filter(Boolean);
+      const bruto = new Array(8).fill(0.05);
+
+      for (const p of palabras) {
+        DICCIONARIO_BROWSER.forEach((claves, idx) => {
+          for (const c of claves) {
+            if (p === c) bruto[idx] += 1.2;
+            else if (p.length >= 4 && (p.includes(c) || c.includes(p))) bruto[idx] += 0.45;
+          }
+        });
+      }
+
+      const mag = Math.sqrt(bruto.reduce((a, b) => a + b * b, 0));
+      return bruto.map(v => Number((v / mag).toFixed(3)));
+    }
+
+    function calcularMetricaBrowser(vecA, vecB, metric) {
+      let dot = 0, normA = 0, normB = 0, sq = 0;
+      for (let i = 0; i < vecA.length; i++) {
+        dot += vecA[i] * vecB[i];
+        normA += vecA[i] * vecA[i];
+        normB += vecB[i] * vecB[i];
+        sq += (vecA[i] - vecB[i]) ** 2;
+      }
+      const euclid = Math.sqrt(sq);
+      if (metric === "Euclidean") return { score: Number((1 / (1 + euclid)).toFixed(4)), raw: Number(euclid.toFixed(4)) };
+      if (metric === "Dot") return { score: Number(dot.toFixed(4)), raw: Number(dot.toFixed(4)) };
+      const cos = dot / (Math.sqrt(normA) * Math.sqrt(normB));
+      return { score: Number(cos.toFixed(4)), raw: Number((1 - cos).toFixed(4)) };
+    }
+
+    let qdrantPointsMemoria = [
+      {
+        id: 101,
+        titulo: "Qdrant: Motor de Búsqueda Vectorial con Grafos HNSW",
+        categoria: "Bases de Datos Vectoriales",
+        descripcion: "Base de datos vectorial open-source que indexa embeddings usando grafos HNSW y compresión Product Quantization en memoria RAM o Memmap."
+      },
+      {
+        id: 102,
+        titulo: "Modelos de Embeddings e Inteligencia Artificial Semántica",
+        categoria: "Inteligencia Artificial",
+        descripcion: "Las redes neuronales transforman texto en lenguaje natural, imágenes y audio en vectores numéricos para construir chatbots con RAG y asistentes conversacionales."
+      },
+      {
+        id: 103,
+        titulo: "Métricas de Distancia: Cosine Similarity, Euclidean y Dot Product",
+        categoria: "Matemáticas & Algoritmos",
+        descripcion: "Criterios matemáticos definidos al crear una colección en Qdrant para medir la similitud y proximidad entre vectores en el plano o espacio multidimensional."
+      },
+      {
+        id: 104,
+        titulo: "Desarrollo Backend con Node.js, Express y Clientes SDK",
+        categoria: "Backend",
+        descripcion: "Construcción de servidores HTTP en JavaScript y conexión mediante clientes SDK hacia motores de bases de datos."
+      },
+      {
+        id: 105,
+        titulo: "Seguridad en APIs con express-rate-limit contra Ataques DoS",
+        categoria: "Ciberseguridad",
+        descripcion: "Middleware que limita el tráfico de peticiones por dirección IP y devuelve código 429 cuando se agotan los tokens."
+      },
+      {
+        id: 106,
+        titulo: "The Legend of Zelda y Elden Ring: Mundos Abiertos RPG",
+        categoria: "Videojuegos",
+        descripcion: "Videojuegos de aventura y acción RPG en consolas donde el jugador explora grandes mapas con espadas."
+      }
+    ].map(item => ({
+      id: item.id,
+      vector: generarEmbeddingBrowser(`${item.titulo}. ${item.categoria}. ${item.descripcion}`),
+      payload: item
+    }));
+
+    function renderTablaQdrantPoints() {
+      const tbody = document.getElementById("tbodyQdrantPoints");
+      if (!tbody) return;
+      document.getElementById("pointsTotalBadge").textContent = `Total: ${qdrantPointsMemoria.length} Points indexados`;
+
+      tbody.innerHTML = qdrantPointsMemoria
+        .map(pt => `
+          <tr>
+            <td style="font-family: var(--font-mono); font-weight: 800; color: var(--campus-cyan);">#${pt.id}</td>
+            <td>
+              <div style="font-weight: 700; color: #fff;">${escapeHtml(pt.payload.titulo)}</div>
+              <span style="display: inline-block; margin-top: 0.25rem; font-size: 0.74rem; background: rgba(168,85,247,0.15); color: #d8b4fe; padding: 0.15rem 0.5rem; border-radius: 6px;">
+                ${escapeHtml(pt.payload.categoria)}
+              </span>
+            </td>
+            <td style="font-family: var(--font-mono); font-size: 0.76rem; color: #4ade80;">
+              [${pt.vector.join(", ")}]
+            </td>
+            <td style="color: var(--text-muted); font-size: 0.82rem;">
+              ${escapeHtml(pt.payload.descripcion)}
+            </td>
+          </tr>
+        `)
+        .join("");
+    }
+
+    function cargarConsultaEjemplo(texto, metrica) {
+      document.getElementById("inpSemanticQuery").value = texto;
+      document.getElementById("selDistanceMetric").value = metrica;
+      ejecutarBusquedaVectorialVivo();
+    }
+
+    function ejecutarBusquedaVectorialVivo() {
+      const query = document.getElementById("inpSemanticQuery").value.trim();
+      const metric = document.getElementById("selDistanceMetric").value;
+      if (!query) return;
+
+      const qVec = generarEmbeddingBrowser(query);
+      document.getElementById("lblQueryVectorRaw").textContent = `[${qVec.join(", ")}]`;
+      document.getElementById("badgeMetricActive").textContent = `Métrica: ${metric}`;
+
+      // Renderizar barras de las 8 dimensiones del vector de consulta
+      const barsContainer = document.getElementById("queryVectorBars");
+      barsContainer.innerHTML = qVec
+        .map((val, idx) => `
+          <div class="dim-bar-card">
+            <div style="display: flex; justify-content: space-between; font-size: 0.74rem;">
+              <span style="color: #cbd5e1; font-weight: 600;">${DIMENSIONES_NOMBRES[idx]}</span>
+              <span style="font-family: var(--font-mono); color: #38bdf8; font-weight: 700;">${val}</span>
+            </div>
+            <div class="dim-bar-track">
+              <div class="dim-bar-fill" style="width: ${Math.min(100, Math.round(val * 100))}%;"></div>
+            </div>
+          </div>
+        `)
+        .join("");
+
+      // Comparar contra todos los Points de la colección
+      const clasificados = qdrantPointsMemoria
+        .map(pt => {
+          const m = calcularMetricaBrowser(qVec, pt.vector, metric);
+          return { ...pt, score: m.score, rawDistance: m.raw };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+
+      const top = clasificados[0];
+      document.getElementById("ragAnswerBox").innerHTML = `
+        🤖 <strong>Respuesta Generada con Recuperación Vectorial (RAG):</strong><br>
+        El vector de tu consulta tiene su mayor similitud semántica con el <strong>Point #${top.id} (${escapeHtml(top.payload.titulo)})</strong> alcanzando un score de <strong>${(top.score * 100).toFixed(1)}%</strong> (${metric}).<br>
+        <span style="color: #94a3b8; font-size: 0.84rem;">Contexto extraído del Payload: "${escapeHtml(top.payload.descripcion)}"</span>
+      `;
+
+      document.getElementById("searchResultsCards").innerHTML = clasificados
+        .map((r, i) => `
+          <div style="background: #070b14; border: 1px solid ${i === 0 ? '#22c55e' : '#1e293b'}; border-radius: 10px; padding: 0.75rem 0.95rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+            <div>
+              <div style="font-weight: 700; font-size: 0.86rem; color: #fff;">
+                ${i === 0 ? '🏆 #1 Más Cercano: ' : `#${i + 1}: `}Point ID ${r.id} — ${escapeHtml(r.payload.titulo)}
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Categoría: ${escapeHtml(r.payload.categoria)} | Vector: [${r.vector.slice(0, 4).join(", ")}, ...]
+              </div>
+            </div>
+            <div style="text-align: right; font-family: var(--font-mono);">
+              <div style="font-weight: 800; font-size: 0.88rem; color: ${i === 0 ? '#4ade80' : '#38bdf8'};">
+                Score: ${r.score}
+              </div>
+              <div style="font-size: 0.7rem; color: var(--text-dim);">
+                ${metric === 'Euclidean' ? `Dist L2: ${r.rawDistance}` : `Similitud`}
+              </div>
+            </div>
+          </div>
+        `)
+        .join("");
+    }
+
+    function insertarNuevoPointConIA() {
+      const titulo = document.getElementById("newPointTitle").value.trim();
+      const categoria = document.getElementById("newPointCategory").value.trim() || "General";
+      const descripcion = document.getElementById("newPointDesc").value.trim();
+
+      if (!titulo || !descripcion) {
+        mostrarToast("⚠️ Completa el título y la descripción para vectorizar el Point");
+        return;
+      }
+
+      const nuevoId = qdrantPointsMemoria.length > 0 ? Math.max(...qdrantPointsMemoria.map(p => p.id)) + 1 : 101;
+      const vectorIA = generarEmbeddingBrowser(`${titulo}. ${categoria}. ${descripcion}`);
+
+      qdrantPointsMemoria.push({
+        id: nuevoId,
+        vector: vectorIA,
+        payload: { id: nuevoId, titulo, categoria, descripcion }
+      });
+
+      renderTablaQdrantPoints();
+      document.getElementById("inpSemanticQuery").value = `${titulo} ${descripcion}`;
+      ejecutarBusquedaVectorialVivo();
+      mostrarToast(`✨ Point #${nuevoId} vectorizado con IA e indexado en la colección 'campuslands_ia'`);
+    }
+
+    // --- 6. NAVEGACIÓN Y ATAJOS DE TECLADO ---
+    function copiarTexto(texto) {
+      navigator.clipboard.writeText(texto).then(() => {
+        mostrarToast("📋 Copiado al portapapeles");
+      }).catch(() => {
+        mostrarToast("⚠️ No se pudo copiar automáticamente");
+      });
+    }
+
+    function mostrarToast(msg) {
+      const toast = document.getElementById("toastMsg");
+      toast.textContent = msg;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 2600);
+    }
+
+    let currentStep = 1;
+    const totalSteps = 10;
+
+    function goToStep(step) {
+      if (step < 1 || step > totalSteps) return;
+      currentStep = step;
+
+      document.querySelectorAll(".slide-item").forEach(s => {
+        s.classList.toggle("active", parseInt(s.dataset.step, 10) === currentStep);
+      });
+
+      document.getElementById("dockCounter").textContent = `${currentStep} / ${totalSteps}`;
+      document.getElementById("progressBar").style.width = `${(currentStep / totalSteps) * 100}%`;
+
+      document.getElementById("btnPrev").disabled = currentStep === 1;
+      document.getElementById("btnNext").disabled = currentStep === totalSteps;
+
+      document.querySelectorAll(".toc-item").forEach((it, idx) => {
+        it.classList.toggle("current", idx + 1 === currentStep);
+      });
+
+      document.getElementById("modalTOC").classList.remove("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.getElementById("btnPrev").onclick = () => goToStep(currentStep - 1);
+    document.getElementById("btnNext").onclick = () => goToStep(currentStep + 1);
+
+    document.addEventListener("keydown", (e) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
+      if (e.key === "ArrowRight") goToStep(currentStep + 1);
+      else if (e.key === "ArrowLeft") goToStep(currentStep - 1);
+      else if (e.key.toLowerCase() === "m") toggleViewMode();
+      else if (e.key.toLowerCase() === "t") toggleTOCModal();
+      else if (e.key === "Escape") document.getElementById("modalTOC").classList.remove("active");
+    });
+
+    function toggleViewMode() {
+      const body = document.body;
+      const isSlides = body.classList.contains("mode-slides");
+      if (isSlides) {
+        body.classList.remove("mode-slides");
+        body.classList.add("mode-doc");
+        document.getElementById("modeIcon").textContent = "📽️";
+        document.getElementById("modeLabel").textContent = "Modo Diapositivas";
+        mostrarToast("📖 Modo Lectura Continua activado");
+      } else {
+        body.classList.remove("mode-doc");
+        body.classList.add("mode-slides");
+        document.getElementById("modeIcon").textContent = "📖";
+        document.getElementById("modeLabel").textContent = "Modo Lectura";
+        goToStep(currentStep);
+        mostrarToast("📽️ Modo Diapositivas Paso a Paso activado");
+      }
+    }
+
+    function toggleTOCModal() {
+      document.getElementById("modalTOC").classList.toggle("active");
+    }
+
+    document.getElementById("btnToggleMode").onclick = toggleViewMode;
+    document.getElementById("btnOpenTOC").onclick = toggleTOCModal;
+    document.getElementById("btnCloseTOC").onclick = () => document.getElementById("modalTOC").classList.remove("active");
+
+    window.addEventListener("DOMContentLoaded", () => {
+      buscarCrayonesSimilares([2, 132, 199], "Azul Preferido");
+      renderCodeFile("qdrantEngine");
+      renderTablaQdrantPoints();
+      ejecutarBusquedaVectorialVivo();
+      goToStep(1);
+    });
+  </script>
+</body>
+</html>
